@@ -1,0 +1,27 @@
+{
+  "name": "modbus",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run build && start.sh",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adrianscheit/modbus.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/adrianscheit/modbus/issues"
+  },
+  "homepage": "https://github.com/adrianscheit/modbus#readme",
+  "devDependencies": {
+    "@types/w3c-web-serial": "^1",
+    "ts-loader": "^9",
+    "typescript": "^4",
+    "webpack": "^5",
+    "webpack-cli": "^4"
+  }
+}

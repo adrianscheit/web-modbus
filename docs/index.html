@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+    <meta name="description" content="GitHub pages with Modbus tool, supports Modbus RTU and Modbus ASCII" />
+    <meta charset="utf-8" />
+    <title>Modbus tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="" />
+    <style>
+        #sniffer {
+            word-break: break-all;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+
+        #sniffer>div {
+            border: 1px solid black;
+            padding: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <p>
+        Notice: 
+        This page does not use cookies. 
+        This page does not save any user data. 
+        This page is not any comercial page. 
+        Source code is avaliable here: https://github.com/adrianscheit/modbus
+    </p>
+    <form>
+        <fieldset>
+            <label>
+                baudRate
+                <input type="number" name="baudRate" list="baudRate" min="110" max="2000000" step="1" value="9600"
+                    required />
+                <datalist id="baudRate">
+                    <option>110</option>
+                    <option>300</option>
+                    <option>600</option>
+                    <option>1200</option>
+                    <option>2400</option>
+                    <option>4800</option>
+                    <option>9600</option>
+                    <option>14400</option>
+                    <option>19200</option>
+                    <option>38400</option>
+                    <option>57600</option>
+                    <option>115200</option>
+                    <option>128000</option>
+                    <option>125000</option>
+                    <option>250000</option>
+                    <option>256000</option>
+                    <option>500000</option>
+                    <option>1000000</option>
+                    <option>1500000</option>
+                    <option>2000000</option>
+                </datalist>
+            </label>
+            <label>
+                dataBits
+                <input type="number" name="dataBits" min="7" max="8" step="1" value="8" required />
+            </label>
+            <label>
+                stopBits
+                <input type="number" name="stopBits" min="1" max="2" step="1" value="2" required />
+            </label>
+            <label>
+                parity
+                <select name="parity" required>
+                    <option>none</option>
+                    <option>even</option>
+                    <option>odd</option>
+                </select>
+            </label>
+            <label>
+                Modbus mode
+                <select name="modbusmode" required>
+                    <option>RTU</option>
+                    <option>ASCII</option>
+                </select>
+            </label>
+            <input type="submit" />
+        </fieldset>
+    </form>
+    <section>
+        <h3>Sniffer</h3>
+        <p>First frams are for CRC/LRC/formats testing purpose only</p>
+        <div id="sniffer"></div>
+    </section>
+
+    <script src="main.js"></script>
+</body>
+
+</html>
