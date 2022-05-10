@@ -1,15 +1,31 @@
 import { Frame as Frame } from "./frame";
 
 export abstract class DataReceiver {
-    protected snifferElement: HTMLElement = document.querySelector('#sniffer')!;
+    protected snifferTable: HTMLElement = document.querySelector('table')!;
+    protected snifferTableHeaderRow: HTMLElement = document.querySelector('table > tr')!;
 
     receive(data: Uint8Array): void {
         console.log('received: ', data);
     }
-    report(text: string, frame: Frame): void {
-        const newDiv = document.createElement('div');
-        newDiv.appendChild(document.createTextNode(text + JSON.stringify(frame)));
-        this.snifferElement.appendChild(newDiv);
+    report(success: boolean, frame: Frame): void {
+        const now = new Date();
+        const columns: string[] = [
+            `${now.toLocaleTimeString()}.${now.getMilliseconds()}`,
+            `${frame.slaveAddress}`,
+            `${frame.functionCode}`,
+            frame.functionDescription,
+            JSON.stringify(frame.specificFormats, undefined, 1)
+        ];
+        const tr = document.createElement('tr');
+        for (const item of columns) {
+            const td = document.createElement('td');
+            td.appendChild(document.createTextNode(item));
+            tr.appendChild(td);
+        }
+        if (!success) {
+            tr.classList.add('error');
+        }
+        this.snifferTable.insertBefore(tr, this.snifferTableHeaderRow);
     }
 }
 
@@ -79,7 +95,7 @@ export class RtuDataReceiver extends DataReceiver {
         }
         this.frameBytes.pop();
         this.frameBytes.pop();
-        this.report(this.currentCrc === 0 ? 'CRC check success: ' : 'CRC check failed: ', new Frame(this.frameBytes));
+        this.report(this.currentCrc === 0, new Frame(this.frameBytes));
         this.frameBytes = [];
         this.currentCrc = 0xffff;
     }
@@ -122,7 +138,7 @@ export class AsciiDataReceiver extends DataReceiver {
 
     endFrame(): void {
         this.frameBytes.pop();
-        this.report(this.currentLrc === 0 ? 'LRC check success: ' : 'LRC check failed: ', new Frame(this.frameBytes));
+        this.report(this.currentLrc === 0, new Frame(this.frameBytes));
         this.frameBytes = [];
         this.currentLrc = 0x00;
     }

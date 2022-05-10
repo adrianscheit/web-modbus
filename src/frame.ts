@@ -113,7 +113,6 @@ export class Frame {
     readonly slaveAddress: number;
     readonly functionCode: number;
     readonly functionDescription: string;
-    readonly timestamp: string = new Date().toLocaleString();
     readonly specificFormats: any[] = [];
 
     constructor(readonly data: number[]) {
@@ -125,12 +124,16 @@ export class Frame {
         this.functionDescription = getFunctionCodeDescription(this.functionCode);
         const specificFormat = functionFrameFormats[this.functionCode];
         if (specificFormat) {
+            const errors: any[] = [];
             for (const format of specificFormat) {
                 try {
                     this.specificFormats.push(new format(data));
                 } catch (e: any) {
-                    this.specificFormats.push(e?.message || e);
+                    errors.push(e?.message || e);
                 }
+            }
+            if (!this.specificFormats.length) {
+                this.specificFormats = errors;
             }
         }
     }

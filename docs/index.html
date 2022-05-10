@@ -9,27 +9,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="author" content="" />
     <style>
-        #sniffer {
-            word-break: break-all;
-            display: flex;
-            flex-direction: column-reverse;
+        #error {
+            color: #c00;
         }
 
-        #sniffer>div {
-            border: 1px solid black;
-            padding: 4px;
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th {
+            border: 1px solid #777;
+        }
+
+        td {
+            padding: 0 4px;
+        }
+
+        table>tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table>tr:hover {
+            background-color: #ddd;
         }
     </style>
 </head>
 
 <body>
     <p>
-        Notice: 
-        This page does not use cookies. 
-        This page does not save any user data. 
-        This page is not any comercial page. 
+        Notice:
+        This page does not use cookies.
+        This page does not save any user data.
+        This page is not any comercial page.
         Source code is avaliable here: https://github.com/adrianscheit/modbus
     </p>
+    <h2 id="error"></h2>
     <form>
         <fieldset>
             <label>
@@ -88,7 +103,15 @@
     <section>
         <h3>Sniffer</h3>
         <p>First frams are for CRC/LRC/formats testing purpose only</p>
-        <div id="sniffer"></div>
+        <table>
+            <tr>
+                <th>Timestamp</th>
+                <th>Slave address</th>
+                <th>Function code</th>
+                <th>Function description</th>
+                <th>Details</th>
+            </tr>
+        </table>
     </section>
 
     <script src="main.js"></script>

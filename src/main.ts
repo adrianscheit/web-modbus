@@ -2,6 +2,20 @@
 
 import { AsciiDataReceiver, DataReceiver, RtuDataReceiver } from "./data-receiver";
 
+const error: HTMLFieldSetElement = document.querySelector('#error')!;
+
+const reportError = (message: any = ''): void => {
+    error.textContent = (error as any).message || JSON.stringify(error);
+    console.error(message);
+}
+
+const fieldset: HTMLFieldSetElement = document.querySelector('fieldset')!;
+const serial: Serial = navigator.serial;
+if (!serial) {
+    reportError('No serial support in this browser!');
+    fieldset.disabled = true;
+}
+
 document.querySelector('form')!.addEventListener('submit', event => {
     event.preventDefault();
     const formData = Object.fromEntries(
@@ -9,20 +23,14 @@ document.querySelector('form')!.addEventListener('submit', event => {
             .map((it: any): [string, string | number] => [it.name, (+it.value || it.value)])
     );
     console.log(formData);
-    start(formData as any, formData.modbusmode === 'ASCII' ? new AsciiDataReceiver : new RtuDataReceiver());
+    start(formData as any, formData.modbusmode === 'ASCII' ? new AsciiDataReceiver() : new RtuDataReceiver());
 });
-
-const fieldset: HTMLFieldSetElement = document.querySelector('fieldset')!;
-const serial: Serial = navigator.serial;
-if (!serial) {
-    console.error('No serial support in this browser!');
-    fieldset.disabled = true;
-}
 
 const start = (serialOptions: SerialOptions, dataReceiver: DataReceiver) => {
     serial.requestPort().then((serialPort: SerialPort) => {
         console.log('serialPort', serialPort);
         serialPort.open(serialOptions).then(async () => {
+            error.textContent = '';
             fieldset.disabled = true;
 
             while (serialPort.readable) {
@@ -36,7 +44,7 @@ const start = (serialOptions: SerialOptions, dataReceiver: DataReceiver) => {
                         dataReceiver.receive(value);
                     }
                 } catch (error) {
-                    console.error('read catch', error);
+                    reportError(error);
                 } finally {
                     reader.releaseLock();
                 }
