@@ -38,10 +38,11 @@ export class RtuDataReceiver extends DataReceiver {
         if (this.timeoutHandler) {
             clearTimeout(this.timeoutHandler!);
         }
+        this.timeoutHandler = setTimeout(() => this.endFrame(), 120);
         data.forEach((it) => {
             this.frameBytes.push(it);
             this.updateCrc(it);
-            if (this.currentCrc === 0) {
+            if (this.currentCrc === 0 && this.frameBytes.length >= 4) {
                 // assume end of frame
                 this.endFrame();
             }
@@ -50,7 +51,6 @@ export class RtuDataReceiver extends DataReceiver {
             //     this.endFrame();
             // }
         });
-        this.timeoutHandler = setTimeout(() => this.endFrame(), 120);
     }
 
     endFrame(): void {
