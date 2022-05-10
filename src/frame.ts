@@ -59,12 +59,19 @@ class DataRegisters {
 class DataWriteSingleBoolean {
     address: number;
     onOff: boolean;
+
     constructor(data: number[]) {
         if (data.length !== 4) {
-            throw new Error(`Invalid data format for DataRegisters! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataWriteSingleBoolean! ${JSON.stringify(data)}`);
         }
         this.address = toUInt16(data, 0);
-        this.onOff = !!data[2] || !!data[3];
+        if (data[2] === 0x00 && data[3] === 0x00) {
+            this.onOff = false;
+        } else if (data[2] === 0xFF && data[3] === 0x00 || data[2] === 0x00 && data[3] === 0xFF) {
+            this.onOff = true;
+        } else {
+            throw new Error('Invalid data format for single register... Allowed only: 0xFF00, 0x00FF, 0x0000');
+        }
     }
 }
 
@@ -74,7 +81,7 @@ class DataAddressData {
 
     constructor(data: number[]) {
         if (data.length !== 4) {
-            throw new Error(`Invalid data format for DataAddressQuantity! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataAddressData! ${JSON.stringify(data)}`);
         }
         this.address = toUInt16(data, 0);
         this.data = toUInt16(data, 2);
@@ -87,7 +94,7 @@ class DataAddressQuantityBooleans {
 
     constructor(data: number[]) {
         if (data.length <= 4) {
-            throw new Error(`Invalid data format for DataAddressQuantity! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataAddressQuantityBooleans! ${JSON.stringify(data)}`);
         }
         this.dataAddressQuantity = new DataAddressQuantity(data.slice(0, 4));
         this.dataBooleans = new DataBooleans(data.slice(4));
@@ -100,29 +107,42 @@ class DataAddressQuantityRegisters {
 
     constructor(data: number[]) {
         if (data.length <= 4) {
-            throw new Error(`Invalid data format for DataAddressQuantity! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataAddressQuantityRegisters! ${JSON.stringify(data)}`);
         }
         this.dataAddressQuantity = new DataAddressQuantity(data.slice(0, 4));
         this.dataRegisters = new DataRegisters(data.slice(4));
     }
 }
 
-const functionFrameFormats: { [code: number]: { new(data: number[]): any }[] } = {
-    0x01: [DataAddressQuantity, DataBooleans],
-    0x02: [DataAddressQuantity, DataBooleans],
-    0x03: [DataAddressQuantity, DataRegisters],
-    0x04: [DataAddressQuantity, DataRegisters],
-    0x05: [DataWriteSingleBoolean],
-    0x06: [DataAddressData],
-    0x0f: [DataAddressQuantityBooleans, DataAddressQuantity],
-    0x10: [DataAddressQuantityRegisters, DataAddressQuantity],
+class DataForbidden {
+    constructor(data: number[]) {
+        throw new Error(`Not possible`);
+    }
+}
+
+
+type FrameDetails = { new(data: number[]): any };
+const functionFrameFormats: {
+    [code: number]: {
+        fromMasterToSlave: FrameDetails,
+        fromSlaveToMaster: FrameDetails,
+    }
+} = {
+    0x01: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataBooleans },
+    0x02: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataBooleans },
+    0x03: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataRegisters },
+    0x04: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataRegisters },
+    0x05: { fromMasterToSlave: DataWriteSingleBoolean, fromSlaveToMaster: DataWriteSingleBoolean },
+    0x06: { fromMasterToSlave: DataAddressData, fromSlaveToMaster: DataAddressData },
+    0x0f: { fromMasterToSlave: DataAddressQuantityBooleans, fromSlaveToMaster: DataAddressQuantity },
+    0x10: { fromMasterToSlave: DataAddressQuantityRegisters, fromSlaveToMaster: DataAddressQuantity },
 };
 
 export class Frame {
     readonly slaveAddress: number;
     readonly functionCode: number;
-    readonly functionDescription: string;
-    readonly specificFormats: any[] = [];
+    readonly fromMasterToSlave?: any;
+    readonly fromSlaveToMaster?: any;
 
     constructor(readonly data: number[]) {
         // if (data.length < 2) {
@@ -130,19 +150,17 @@ export class Frame {
         // }
         this.slaveAddress = data.shift()!;
         this.functionCode = data.shift()!;
-        this.functionDescription = getFunctionCodeDescription(this.functionCode);
         const specificFormat = functionFrameFormats[this.functionCode];
         if (specificFormat) {
-            const errors: any[] = [];
-            for (const format of specificFormat) {
-                try {
-                    this.specificFormats.push(new format(data));
-                } catch (e: any) {
-                    errors.push(e?.message || e);
-                }
+            try {
+                this.fromMasterToSlave = new specificFormat.fromMasterToSlave(data);
+            } catch (e: any) {
+                this.fromMasterToSlave = e.message;
             }
-            if (!this.specificFormats.length) {
-                this.specificFormats = errors;
+            try {
+                this.fromSlaveToMaster = new specificFormat.fromSlaveToMaster(data);
+            } catch (e: any) {
+                this.fromSlaveToMaster = e.message;
             }
         }
     }

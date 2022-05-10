@@ -1,4 +1,5 @@
 import { Frame as Frame } from "./frame";
+import { getFunctionCodeDescription } from "./function-codes";
 
 export abstract class DataReceiver {
     protected snifferTable: HTMLElement = document.querySelector('table')!;
@@ -6,20 +7,30 @@ export abstract class DataReceiver {
     receive(data: Uint8Array): void {
         // console.log('received: ', data);
     }
+
+    getItemElement(text: string, error: boolean = false) {
+        const td = document.createElement('td');
+        td.appendChild(document.createTextNode(text));
+        if (error) {
+            td.classList.add('error');
+        }
+        return td;
+    }
+
     report(success: boolean, frame: Frame): void {
+        const tr = document.createElement('tr');
         const now = new Date();
-        const columns: string[] = [
+        [
             `${now.toLocaleTimeString()}+${now.getMilliseconds()}ms`,
             `${frame.slaveAddress}`,
             `${frame.functionCode}`,
-            frame.functionDescription,
-            JSON.stringify(frame.specificFormats, undefined, 1)
-        ];
-        const tr = document.createElement('tr');
-        for (const item of columns) {
-            const td = document.createElement('td');
-            td.appendChild(document.createTextNode(item));
-            tr.appendChild(td);
+            getFunctionCodeDescription(frame.functionCode),
+        ].forEach((it) => tr.appendChild(this.getItemElement(it)));
+        const items: any[] = [frame.fromMasterToSlave, frame.fromSlaveToMaster];
+        if (typeof items[0] === 'string' && typeof items[1] === 'string') {
+            items.forEach((it) => tr.appendChild(this.getItemElement(it, true)));
+        } else {
+            items.forEach((it) => tr.appendChild(this.getItemElement(typeof it === 'object' ? JSON.stringify(it, undefined, 1) : '')));
         }
         if (!success) {
             tr.classList.add('error');
