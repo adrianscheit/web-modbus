@@ -81,10 +81,10 @@ export class RtuDataReceiver extends DataReceiver {
                 // assume end of frame
                 this.endFrame();
             }
-            if (this.frameBytes.length === 40) {
-                console.warn('Rejecteding 40 bytes');
-                this.endFrame();
-            }
+            // if (this.frameBytes.length > 300) {
+            //     console.warn('Rejecteding 300 bytes');
+            //     this.endFrame();
+            // }
         });
         this.timeoutHandler = setTimeout(() => this.endFrame(), 200);
     }
