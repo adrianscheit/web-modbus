@@ -25,12 +25,12 @@ export const errorCodes: { [code: number]: string } = {
     0x91: 'Gateway Target Device Failed to Respond',
 };
 
-export const valueToHex = (value: number): string => `0x${value.toString(16)}`;
+export const valueToHex = (value: number): string => `0x${value < 16 ? '0' : ''}${value.toString(16)}`;
 
 export const getFunctionCodeDescription = (code: number): string => {
     if (code & 0x80) {
         return errorCodes[code] || `Unknown error ${valueToHex(code)}`;
     } else {
-        return functionCodes[code] || `Unknown function 0x${valueToHex(code)}`;
+        return functionCodes[code] || `Unknown function ${valueToHex(code)}`;
     }
 }

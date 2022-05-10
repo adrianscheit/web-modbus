@@ -28,8 +28,11 @@ class DataBooleans {
 }
 
 class DataRegisters {
-    registers: number[] = [];
-    float32: number[] = [];
+    uInt16: number[] = [];
+    int16: number[] = [];
+    float32?: number[];
+    uInt32?: number[];
+    int32?: number[];
 
     constructor(data: number[]) {
         if (data[0] !== data.length - 1 || (data[0] & 0x1) !== 0) {
@@ -37,11 +40,17 @@ class DataRegisters {
         }
         const dataView = new DataView(new Uint8Array(data).buffer);
         for (let i = 1; i < data.length; i += 2) {
-            this.registers.push(dataView.getUint16(i, false));
+            this.uInt16.push(dataView.getUint16(i, false));
+            this.int16.push(dataView.getInt16(i, false));
         }
         if ((data[0] & 0x3) === 0 && data[0] >= 4) {
+            this.float32 = [];
+            this.uInt32 = [];
+            this.int32 = [];
             for (let i = 1; i < data.length; i += 4) {
                 this.float32.push(dataView.getFloat32(i, false));
+                this.uInt32.push(dataView.getUint32(i, false));
+                this.int32.push(dataView.getInt32(i, false));
             }
         }
     }
@@ -116,9 +125,9 @@ export class Frame {
     readonly specificFormats: any[] = [];
 
     constructor(readonly data: number[]) {
-        if (data.length < 2) {
-            throw new Error(`Too few data for Modbus frame! ${JSON.stringify(data)}`);
-        }
+        // if (data.length < 2) {
+        //     throw new Error(`Too few data for Modbus frame! ${JSON.stringify(data)}`);
+        // }
         this.slaveAddress = data.shift()!;
         this.functionCode = data.shift()!;
         this.functionDescription = getFunctionCodeDescription(this.functionCode);

@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="author" content="" />
     <style>
-        #error {
+        .error {
             color: #c00;
         }
 
@@ -44,15 +44,14 @@
         This page is not any comercial page.
         Source code is avaliable here: https://github.com/adrianscheit/modbus
     </p>
-    <h2 id="error"></h2>
+    <h2 class="error"></h2>
     <form>
         <fieldset>
             <label>
                 baudRate
-                <input type="number" name="baudRate" list="baudRate" min="110" max="2000000" step="1" value="9600"
+                <input type="number" name="baudRate" list="baudRate" min="300" max="10000000" step="1" value="9600"
                     required />
                 <datalist id="baudRate">
-                    <option>110</option>
                     <option>300</option>
                     <option>600</option>
                     <option>1200</option>
@@ -63,6 +62,7 @@
                     <option>19200</option>
                     <option>38400</option>
                     <option>57600</option>
+                    <option>76800</option>
                     <option>115200</option>
                     <option>128000</option>
                     <option>125000</option>
@@ -72,6 +72,8 @@
                     <option>1000000</option>
                     <option>1500000</option>
                     <option>2000000</option>
+                    <option>5000000</option>
+                    <option>10000000</option>
                 </datalist>
             </label>
             <label>

@@ -2,15 +2,14 @@ import { Frame as Frame } from "./frame";
 
 export abstract class DataReceiver {
     protected snifferTable: HTMLElement = document.querySelector('table')!;
-    protected snifferTableHeaderRow: HTMLElement = document.querySelector('table > tr')!;
 
     receive(data: Uint8Array): void {
-        console.log('received: ', data);
+        // console.log('received: ', data);
     }
     report(success: boolean, frame: Frame): void {
         const now = new Date();
         const columns: string[] = [
-            `${now.toLocaleTimeString()}.${now.getMilliseconds()}`,
+            `${now.toLocaleTimeString()}+${now.getMilliseconds()}ms`,
             `${frame.slaveAddress}`,
             `${frame.functionCode}`,
             frame.functionDescription,
@@ -25,7 +24,7 @@ export abstract class DataReceiver {
         if (!success) {
             tr.classList.add('error');
         }
-        this.snifferTable.insertBefore(tr, this.snifferTableHeaderRow);
+        this.snifferTable.appendChild(tr);
     }
 }
 
@@ -77,7 +76,7 @@ export class RtuDataReceiver extends DataReceiver {
         data.forEach((it) => {
             this.frameBytes.push(it);
             this.updateCrc(it);
-            if (this.currentCrc === 0 && this.frameBytes.length >= 4) {
+            if (this.currentCrc === 0) {
                 // assume end of frame
                 this.endFrame();
             }
@@ -86,15 +85,15 @@ export class RtuDataReceiver extends DataReceiver {
             //     this.endFrame();
             // }
         });
-        this.timeoutHandler = setTimeout(() => this.endFrame(), 200);
+        this.timeoutHandler = setTimeout(() => this.endFrame(), 120);
     }
 
     endFrame(): void {
+        this.frameBytes.pop();
+        this.frameBytes.pop();
         if (!this.frameBytes.length) {
             return;
         }
-        this.frameBytes.pop();
-        this.frameBytes.pop();
         this.report(this.currentCrc === 0, new Frame(this.frameBytes));
         this.frameBytes = [];
         this.currentCrc = 0xffff;
