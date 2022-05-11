@@ -1,4 +1,4 @@
-import { getFunctionCodeDescription } from "./function-codes";
+import { getFunctionCodeDescription, valueToHex } from "./function-codes";
 
 const toUInt16 = (data: number[], offset: number): number => data[offset] << 8 ^ data[offset + 1];
 
@@ -8,7 +8,7 @@ class DataAddressQuantity {
 
     constructor(data: number[]) {
         if (data.length !== 4) {
-            throw new Error(`Invalid data format for DataAddressQuantity! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataAddressQuantity!`);
         }
         this.address = toUInt16(data, 0);
         this.quantity = toUInt16(data, 2);
@@ -21,7 +21,7 @@ class DataBooleans {
 
     constructor(data: number[]) {
         if (data[0] !== data.length - 1) {
-            throw new Error(`Invalid data format for DataBooleans! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataBooleans!`);
         }
         this.onOff = data.slice(1).flatMap((byte) => DataBooleans.bitsInByte.map((bit) => !!(bit & byte)));
     }
@@ -36,7 +36,7 @@ class DataRegisters {
 
     constructor(data: number[]) {
         if (data[0] !== data.length - 1 || (data[0] & 0x1) !== 0) {
-            throw new Error(`Invalid data format for DataRegisters! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataRegisters!`);
         }
         const dataView = new DataView(new Uint8Array(data).buffer);
         for (let i = 1; i < data.length; i += 2) {
@@ -62,7 +62,7 @@ class DataWriteSingleBoolean {
 
     constructor(data: number[]) {
         if (data.length !== 4) {
-            throw new Error(`Invalid data format for DataWriteSingleBoolean! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataWriteSingleBoolean!`);
         }
         this.address = toUInt16(data, 0);
         if (data[2] === 0x00 && data[3] === 0x00) {
@@ -81,7 +81,7 @@ class DataAddressData {
 
     constructor(data: number[]) {
         if (data.length !== 4) {
-            throw new Error(`Invalid data format for DataAddressData! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataAddressData!`);
         }
         this.address = toUInt16(data, 0);
         this.data = toUInt16(data, 2);
@@ -94,7 +94,7 @@ class DataAddressQuantityBooleans {
 
     constructor(data: number[]) {
         if (data.length <= 4) {
-            throw new Error(`Invalid data format for DataAddressQuantityBooleans! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataAddressQuantityBooleans!`);
         }
         this.dataAddressQuantity = new DataAddressQuantity(data.slice(0, 4));
         this.dataBooleans = new DataBooleans(data.slice(4));
@@ -107,7 +107,7 @@ class DataAddressQuantityRegisters {
 
     constructor(data: number[]) {
         if (data.length <= 4) {
-            throw new Error(`Invalid data format for DataAddressQuantityRegisters! ${JSON.stringify(data)}`);
+            throw new Error(`Invalid data format for DataAddressQuantityRegisters!`);
         }
         this.dataAddressQuantity = new DataAddressQuantity(data.slice(0, 4));
         this.dataRegisters = new DataRegisters(data.slice(4));
@@ -151,13 +151,17 @@ export class Frame {
             try {
                 this.fromMasterToSlave = new specificFormat.fromMasterToSlave(data);
             } catch (e: any) {
-                this.fromMasterToSlave = e.message;
+                this.fromMasterToSlave = this.getError(e);
             }
             try {
                 this.fromSlaveToMaster = new specificFormat.fromSlaveToMaster(data);
             } catch (e: any) {
-                this.fromSlaveToMaster = e.message;
+                this.fromSlaveToMaster = this.getError(e);
             }
         }
+    }
+
+    getError(e: any): string {
+        return `${e.message}`;
     }
 }

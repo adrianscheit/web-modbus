@@ -32,7 +32,7 @@ export abstract class DataReceiver {
             ].forEach((it) => tr.appendChild(this.getItemElement(it)));
             const items: any[] = [frame.fromMasterToSlave, frame.fromSlaveToMaster];
             if (typeof items[0] === 'string' && typeof items[1] === 'string') {
-                items.forEach((it) => tr.appendChild(this.getItemElement(it, true)));
+                items.forEach((it) => tr.appendChild(this.getItemElement(`${it} ${this.getBytesAsHex(bytes)}`, true)));
             } else {
                 items.forEach((it) => tr.appendChild(this.getItemElement(typeof it === 'object' ? JSON.stringify(it, undefined, 1) : '')));
             }
@@ -44,11 +44,15 @@ export abstract class DataReceiver {
                 ``,
                 '',
                 `${bytes.length}`,
-                bytes.map((it) => valueToHex(it)).join(' '),
+                this.getBytesAsHex(bytes),
                 ``,
             ].forEach((it) => tr.appendChild(this.getItemElement(it)));
         }
         this.snifferTable.insertBefore(tr, this.snifferTable.firstChild);
+    }
+
+    getBytesAsHex(bytes: number[]): string {
+        return bytes.map((it) => valueToHex(it)).join(' ');
     }
 }
 

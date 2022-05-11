@@ -6,7 +6,7 @@ const domError: Text = document.querySelector('h2.error')!.appendChild(document.
 
 const reportError = (error?: any): void => {
     console.error(error);
-    domError.nodeValue = `${error}`;
+    domError.nodeValue = `Error: ${error}`;
 }
 
 const fieldset: HTMLFieldSetElement = document.querySelector('fieldset')!;

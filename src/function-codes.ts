@@ -25,7 +25,7 @@ export const errorCodes: { [code: number]: string } = {
     0x91: 'Gateway Target Device Failed to Respond',
 };
 
-export const valueToHex = (value: number): string => !value ?
+export const valueToHex = (value: number): string => value == null ?
     `${value}` :
     `0x${value < 16 ? '0' : ''}${value.toString(16)}`;
 
