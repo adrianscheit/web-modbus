@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "webpack --mode=development && start-browser.sh",
-    "start": "webpack && git pull && git add -A && git commit -m 'push' && git push"
+    "start": "webpack && git pull && git add -A && git commit -m. && git push"
   },
   "repository": {
     "type": "git",
