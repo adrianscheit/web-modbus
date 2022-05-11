@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "webpack --mode=development && start.sh",
-    "build": "webpack && start.sh",
-    "push": "webpack && git pull && git add -A && git commit -m 'push' && git push"
+    "test": "webpack --mode=development && start-browser.sh",
+    "start": "webpack && git pull && git add -A && git commit -m 'push' && git push"
   },
   "repository": {
     "type": "git",

@@ -2,7 +2,7 @@ import { Frame as Frame } from "./frame";
 import { getFunctionCodeDescription, valueToHex } from "./function-codes";
 
 export abstract class DataReceiver {
-    protected snifferTable: HTMLElement = document.querySelector('table')!;
+    protected snifferTable: HTMLElement = document.querySelector('tbody')!;
 
     receive(data: Uint8Array): void {
         // console.log('received: ', data);
@@ -48,7 +48,7 @@ export abstract class DataReceiver {
                 ``,
             ].forEach((it) => tr.appendChild(this.getItemElement(it)));
         }
-        this.snifferTable.appendChild(tr);
+        this.snifferTable.insertBefore(tr, this.snifferTable.firstChild);
     }
 }
 
