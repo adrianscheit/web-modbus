@@ -120,14 +120,13 @@ class DataForbidden {
     }
 }
 
+interface FunctionFormats {
+    fromMasterToSlave: FrameDetails;
+    fromSlaveToMaster: FrameDetails;
+}
 
 type FrameDetails = { new(data: number[]): any };
-const functionFrameFormats: {
-    [code: number]: {
-        fromMasterToSlave: FrameDetails,
-        fromSlaveToMaster: FrameDetails,
-    }
-} = {
+const functionFrameFormats: { [code: number]: FunctionFormats } = {
     0x01: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataBooleans },
     0x02: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataBooleans },
     0x03: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataRegisters },
@@ -145,9 +144,6 @@ export class Frame {
     readonly fromSlaveToMaster?: any;
 
     constructor(readonly data: number[]) {
-        // if (data.length < 2) {
-        //     throw new Error(`Too few data for Modbus frame! ${JSON.stringify(data)}`);
-        // }
         this.slaveAddress = data.shift()!;
         this.functionCode = data.shift()!;
         const specificFormat = functionFrameFormats[this.functionCode];

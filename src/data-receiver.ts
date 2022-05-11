@@ -1,5 +1,5 @@
 import { Frame as Frame } from "./frame";
-import { getFunctionCodeDescription } from "./function-codes";
+import { getFunctionCodeDescription, valueToHex } from "./function-codes";
 
 export abstract class DataReceiver {
     protected snifferTable: HTMLElement = document.querySelector('table')!;
@@ -17,31 +17,62 @@ export abstract class DataReceiver {
         return td;
     }
 
-    report(success: boolean, frame: Frame): void {
+    report(success: boolean, bytes: number[]): void {
         const tr = document.createElement('tr');
         const now = new Date();
-        [
-            `${now.toLocaleTimeString()}+${now.getMilliseconds()}ms`,
-            `${frame.slaveAddress}`,
-            `${frame.functionCode}`,
-            getFunctionCodeDescription(frame.functionCode),
-        ].forEach((it) => tr.appendChild(this.getItemElement(it)));
-        const items: any[] = [frame.fromMasterToSlave, frame.fromSlaveToMaster];
-        if (typeof items[0] === 'string' && typeof items[1] === 'string') {
-            items.forEach((it) => tr.appendChild(this.getItemElement(it, true)));
+        const time = `${now.toLocaleTimeString()}+${now.getMilliseconds()}ms`;
+        if (success) {
+            const frame = new Frame(bytes);
+            [
+                time,
+                `${frame.slaveAddress}`,
+                `${frame.functionCode}`,
+                getFunctionCodeDescription(frame.functionCode),
+                `${bytes.length}`,
+            ].forEach((it) => tr.appendChild(this.getItemElement(it)));
+            const items: any[] = [frame.fromMasterToSlave, frame.fromSlaveToMaster];
+            if (typeof items[0] === 'string' && typeof items[1] === 'string') {
+                items.forEach((it) => tr.appendChild(this.getItemElement(it, true)));
+            } else {
+                items.forEach((it) => tr.appendChild(this.getItemElement(typeof it === 'object' ? JSON.stringify(it, undefined, 1) : '')));
+            }
         } else {
-            items.forEach((it) => tr.appendChild(this.getItemElement(typeof it === 'object' ? JSON.stringify(it, undefined, 1) : '')));
-        }
-        if (!success) {
             tr.classList.add('error');
+            [
+                time,
+                ``,
+                ``,
+                '',
+                `${bytes.length}`,
+                bytes.map((it) => valueToHex(it)).join(' '),
+                ``,
+            ].forEach((it) => tr.appendChild(this.getItemElement(it)));
         }
         this.snifferTable.appendChild(tr);
     }
 }
 
+class CurrentByte {
+    crc: number = 0xFFFF;
+
+    constructor(public readonly byte: number) {
+    }
+
+    updateCrc(byte: number): boolean {
+        this.crc ^= byte;
+        for (let i = 0; i < 8; ++i) {
+            const xor = this.crc & 1;
+            this.crc >>= 1;
+            if (xor) {
+                this.crc ^= 0xA001;
+            }
+        }
+        return this.crc === 0;
+    }
+}
+
 export class RtuDataReceiver extends DataReceiver {
-    frameBytes: number[] = [];
-    currentCrc: number = 0xFFFF;
+    history: CurrentByte[] = [];
     timeoutHandler?: any;
 
     receive(data: Uint8Array): void {
@@ -49,41 +80,31 @@ export class RtuDataReceiver extends DataReceiver {
         if (this.timeoutHandler) {
             clearTimeout(this.timeoutHandler!);
         }
-        this.timeoutHandler = setTimeout(() => this.endFrame(), 120);
-        data.forEach((it) => {
-            this.frameBytes.push(it);
-            this.updateCrc(it);
-            if (this.currentCrc === 0 && this.frameBytes.length >= 4) {
-                // assume end of frame
-                this.endFrame();
+        this.timeoutHandler = setTimeout(() => this.endFrame(), 200);
+        data.forEach((byte) => {
+            this.history.push(new CurrentByte(byte));
+            for (let i = 0; i < this.history.length; ++i) {
+                if (this.history[i].updateCrc(byte)) {
+                    const bytes = this.history.map((it) => it.byte);
+                    if (i) {
+                        this.report(false, bytes.slice(0, i));
+                    }
+                    this.report(true, bytes.slice(i, -2));
+                    this.history = [];
+                    clearTimeout(this.timeoutHandler!);
+                    break;
+                }
             }
-            // if (this.frameBytes.length > 300) {
-            //     console.warn('Rejecteding 300 bytes');
-            //     this.endFrame();
-            // }
+            if (this.history.length > 300) {
+                console.warn('Rejecteding because history bigger than 300', this.history.shift());
+            }
         });
     }
 
     endFrame(): void {
-        this.frameBytes.pop();
-        this.frameBytes.pop();
-        if (!this.frameBytes.length) {
-            return;
-        }
-        this.report(this.currentCrc === 0, new Frame(this.frameBytes));
-        this.frameBytes = [];
-        this.currentCrc = 0xffff;
-    }
-
-    updateCrc(byte: number): void {
-        this.currentCrc ^= byte;
-        for (let i = 0; i < 8; ++i) {
-            const xor = this.currentCrc & 1;
-            this.currentCrc >>= 1;
-            if (xor) {
-                this.currentCrc ^= 0xA001;
-            }
-        }
+        console.warn('timeout');
+        this.report(false, this.history.map((it) => it.byte));
+        this.history = [];
     }
 }
 
@@ -97,18 +118,20 @@ export class AsciiDataReceiver extends DataReceiver {
         data.forEach((it) => this.frameChars.push(it));
         while (this.frameChars.length >= 2) {
             const char: number = this.frameChars.shift()!;
-            if (this.frameBytes.length === 0) {
-            }
             if (char === 0x3A) {
-                if (this.frameBytes.length) {
-                    this.endFrame();
-                }
+                this.resetFrame();
             } else {
                 const char2: number = this.frameChars.shift()!;
-                if (char === 0x0D && char2 === 0x0A) {
-                    this.endFrame();
+                if (char2 === 0x3A) {
+                    this.resetFrame();
+                } else if (char === 0x0D && char2 === 0x0A) {
+                    this.frameBytes.pop();
+                    this.report(!isNaN(this.currentLrc) && (this.currentLrc & 0xff) === 0, this.frameBytes);
+                    this.frameBytes = [];
+                    this.currentLrc = 0x00;
                 } else {
                     const byte = parseInt(String.fromCharCode(char, char2), 16);
+
                     this.frameBytes.push(byte);
                     this.updateLrc(byte);
                 }
@@ -116,15 +139,15 @@ export class AsciiDataReceiver extends DataReceiver {
         }
     }
 
-    endFrame(): void {
-        this.frameBytes.pop();
-        this.report(this.currentLrc === 0, new Frame(this.frameBytes));
-        this.frameBytes = [];
-        this.currentLrc = 0x00;
+    resetFrame(): void {
+        if (this.frameBytes.length) {
+            this.report(false, this.frameBytes);
+            this.frameBytes = [];
+            this.currentLrc = 0x00;
+        }
     }
 
     updateLrc(byte: number): void {
         this.currentLrc += byte;
-        this.currentLrc &= 0xff;
     }
 }

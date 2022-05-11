@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npm run build && start.sh",
-    "build": "webpack"
+    "start": "webpack --mode=development && start.sh",
+    "build": "webpack && start.sh"
   },
   "repository": {
     "type": "git",
