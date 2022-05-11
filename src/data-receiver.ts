@@ -80,7 +80,7 @@ export class RtuDataReceiver extends DataReceiver {
         if (this.timeoutHandler) {
             clearTimeout(this.timeoutHandler!);
         }
-        this.timeoutHandler = setTimeout(() => this.resetFrame(), 200);
+        this.timeoutHandler = setTimeout(() => this.resetFrame(), 300);
         data.forEach((byte) => {
             this.history.push(new CurrentByte(byte));
             for (let i = 0; i < this.history.length; ++i) {
