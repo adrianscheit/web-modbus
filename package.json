@@ -6,7 +6,7 @@
   "scripts": {
     "start": "webpack --mode=development && start.sh",
     "build": "webpack && start.sh",
-    "push": "webpack && git add -A && git commit -m 'push'"
+    "push": "webpack && git add -A && git commit -m 'push' && git push"
   },
   "repository": {
     "type": "git",
