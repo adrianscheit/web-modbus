@@ -80,7 +80,7 @@ export class RtuDataReceiver extends DataReceiver {
         if (this.timeoutHandler) {
             clearTimeout(this.timeoutHandler!);
         }
-        this.timeoutHandler = setTimeout(() => this.endFrame(), 200);
+        this.timeoutHandler = setTimeout(() => this.resetFrame(), 200);
         data.forEach((byte) => {
             this.history.push(new CurrentByte(byte));
             for (let i = 0; i < this.history.length; ++i) {
@@ -101,7 +101,7 @@ export class RtuDataReceiver extends DataReceiver {
         });
     }
 
-    endFrame(): void {
+    resetFrame(): void {
         console.warn('timeout');
         this.report(false, this.history.map((it) => it.byte));
         this.history = [];
@@ -131,7 +131,6 @@ export class AsciiDataReceiver extends DataReceiver {
                     this.currentLrc = 0x00;
                 } else {
                     const byte = parseInt(String.fromCharCode(char, char2), 16);
-
                     this.frameBytes.push(byte);
                     this.updateLrc(byte);
                 }
