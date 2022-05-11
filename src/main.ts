@@ -64,4 +64,5 @@ rtuTest.receive(new Uint8Array([0x01, 0x10, 0x0F, 0xA3, 0x00, 0x02, 0x04, 0x00, 
 
 const asciiTest = new AsciiDataReceiver();
 asciiTest.receive(new TextEncoder().encode(':0401000A000DE4\r\n'));
+asciiTest.receive(new TextEncoder().encode(':0401000A0DE4\r\n')); // good LRC but bad frame
 asciiTest.receive(new TextEncoder().encode(':0401000A000D00\r\n')); // bad LRC
