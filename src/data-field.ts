@@ -1,3 +1,5 @@
+import { getInputChecked } from "./dom";
+
 export interface DataField {
     new(data: number[]): any;
 }
@@ -30,8 +32,8 @@ class DataBooleans {
 }
 
 class DataRegisters {
-    readonly uInt16: number[] = [];
-    readonly int16: number[] = [];
+    readonly uInt16?: number[];
+    readonly int16?: number[];
     readonly float32?: number[];
     readonly uInt32?: number[];
     readonly int32?: number[];
@@ -42,17 +44,29 @@ class DataRegisters {
         }
         const dataView = new DataView(new Uint8Array(data).buffer);
         for (let i = 1; i < data.length; i += 2) {
-            this.uInt16.push(dataView.getUint16(i, false));
-            this.int16.push(dataView.getInt16(i, false));
+            if (getInputChecked('uint16')) {
+                if (!this.uInt16) this.uInt16 = [];
+                this.uInt16.push(dataView.getUint16(i, false));
+            }
+            if (getInputChecked('int16')) {
+                if (!this.int16) this.int16 = [];
+                this.int16.push(dataView.getInt16(i, false));
+            }
         }
         if ((data[0] & 0x3) === 0 && data[0] >= 4) {
-            this.float32 = [];
-            this.uInt32 = [];
-            this.int32 = [];
             for (let i = 1; i < data.length; i += 4) {
-                this.float32.push(dataView.getFloat32(i, false));
-                this.uInt32.push(dataView.getUint32(i, false));
-                this.int32.push(dataView.getInt32(i, false));
+                if (getInputChecked('uint32')) {
+                    if (!this.uInt32) this.uInt32 = [];
+                    this.uInt32.push(dataView.getUint32(i, false));
+                }
+                if (getInputChecked('int32')) {
+                    if (!this.int32) this.int32 = [];
+                    this.int32.push(dataView.getInt32(i, false));
+                }
+                if (getInputChecked('float32')) {
+                    if (!this.float32) this.float32 = [];
+                    this.float32.push(dataView.getFloat32(i, false));
+                }
             }
         }
     }

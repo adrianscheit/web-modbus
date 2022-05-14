@@ -1,4 +1,4 @@
-import { insertSniffedRow, TableDataColumn } from "./dom";
+import { getInputChecked, insertSniffedRow, TableDataColumn } from "./dom";
 import { Frame as Frame } from "./frame";
 import { getFunctionCodeDescription, valueToHex } from "./function-codes";
 
@@ -7,47 +7,40 @@ export const getTime = (): string => {
     return `${now.toLocaleTimeString()}+${now.getMilliseconds()}ms`;
 };
 
-export abstract class DataReceiver {
+const getBytesAsHex = (bytes: number[]): string => {
+    return bytes.map((it) => valueToHex(it)).join(' ');
+}
 
+export const reportValidFrame = (frame: Frame): void => {
+    const columns = [
+        getTime(),
+        `${frame.slaveAddress}`,
+        `${frame.functionCode}`,
+        getFunctionCodeDescription(frame.functionCode),
+        `${frame.data.length}`,
+    ].map((it) => new TableDataColumn(it, false));
+    if (frame.isNoValidDataFormat()) {
+        [frame.fromMasterToSlaveError, frame.fromSlaveToMasterError]
+            .forEach((it) => columns.push(new TableDataColumn(`${it} ${getBytesAsHex(frame.data)}`, true)));
+    } else {
+        [frame.fromMasterToSlave, frame.fromSlaveToMaster]
+            .forEach((it) => columns.push(new TableDataColumn(JSON.stringify(it, undefined, 2))));
+    }
+    insertSniffedRow(columns);
+};
+
+export const reportInvalidData = (bytes: number[]): void => {
+    insertSniffedRow([
+        getTime(),
+        ``,
+        ``,
+        getBytesAsHex(bytes),
+    ].map((it) => new TableDataColumn(it, true)));
+};
+
+export abstract class DataReceiver {
     receive(data: Uint8Array): void {
         // console.log('received: ', data);
-    }
-
-    report(success: boolean, bytes: number[]): void {
-        const time = getTime();
-        if (success) {
-            const frame = new Frame(bytes);
-            const columns = [
-                time,
-                `${frame.slaveAddress}`,
-                `${frame.functionCode}`,
-                getFunctionCodeDescription(frame.functionCode),
-                `${bytes.length}`,
-            ].map((it) => new TableDataColumn(it, false));
-            if (frame.isNoValidDataFormat()) {
-                [frame.fromMasterToSlaveError, frame.fromSlaveToMasterError]
-                    .forEach((it) => columns.push(new TableDataColumn(`${it} ${this.getBytesAsHex(bytes)}`, true)));
-            } else {
-                [frame.fromMasterToSlave, frame.fromSlaveToMaster]
-                    .forEach((it) => columns.push(new TableDataColumn(JSON.stringify(it))));
-            }
-            insertSniffedRow(columns);
-        } else {
-            insertSniffedRow([
-                time,
-                ``,
-                ``,
-                '',
-                `${bytes.length}`,
-                this.getBytesAsHex(bytes),
-                ``,
-            ].map((it) => new TableDataColumn(it, true)));
-        }
-
-    }
-
-    protected getBytesAsHex(bytes: number[]): string {
-        return bytes.map((it) => valueToHex(it)).join(' ');
     }
 }
 
@@ -85,10 +78,17 @@ export class RtuDataReceiver extends DataReceiver {
             for (let i = 0; i < this.history.length; ++i) {
                 if (this.history[i].updateCrc(byte)) {
                     const bytes = this.history.map((it) => it.byte);
-                    if (i) {
-                        this.report(false, bytes.slice(0, i));
+                    const validFrame = new Frame(bytes.slice(i, -2));
+                    if (getInputChecked('onlyValid')) {
+                        if (this.history.length < 4 || validFrame.isNoValidDataFormat()) {
+                            console.warn('Found end of frame but the data field seems invalid!', this.history, validFrame);
+                            continue;
+                        }
                     }
-                    this.report(true, bytes.slice(i, -2));
+                    if (i) {
+                        reportInvalidData(bytes.slice(0, i));
+                    }
+                    reportValidFrame(validFrame);
                     this.history = [];
                     clearTimeout(this.timeoutHandler!);
                     break;
@@ -102,7 +102,7 @@ export class RtuDataReceiver extends DataReceiver {
 
     resetFrame(): void {
         console.warn('timeout');
-        this.report(false, this.history.map((it) => it.byte));
+        reportInvalidData(this.history.map((it) => it.byte));
         this.history = [];
     }
 }
@@ -125,7 +125,11 @@ export class AsciiDataReceiver extends DataReceiver {
                     this.resetFrame();
                 } else if (char === 0x0D && char2 === 0x0A) {
                     this.frameBytes.pop();
-                    this.report(!isNaN(this.currentLrc) && (this.currentLrc & 0xff) === 0, this.frameBytes);
+                    if (!isNaN(this.currentLrc) && (this.currentLrc & 0xff) === 0) {
+                        reportValidFrame(new Frame(this.frameBytes))
+                    } else {
+                        reportInvalidData(this.frameBytes);
+                    }
                     this.frameBytes = [];
                     this.currentLrc = 0x00;
                 } else {
@@ -139,7 +143,7 @@ export class AsciiDataReceiver extends DataReceiver {
 
     resetFrame(): void {
         if (this.frameBytes.length) {
-            this.report(false, this.frameBytes);
+            reportInvalidData(this.frameBytes);
             this.frameBytes = [];
             this.currentLrc = 0x00;
         }

@@ -40,3 +40,7 @@ export const insertSniffedRow = (columns: TableDataColumn[]): void => {
         snifferTable.removeChild(snifferTable.lastChild!);
     }
 };
+
+export const getInputChecked = (name: string): boolean => {
+    return (document.querySelector(`input[type=checkbox][name=${name}]`) as any)?.checked;
+}

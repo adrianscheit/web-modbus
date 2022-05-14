@@ -33,6 +33,10 @@
         tbody>tr:hover {
             background-color: #ddd;
         }
+
+        label {
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -104,6 +108,14 @@
     </form>
     <section>
         <h3>Sniffer</h3>
+        <fieldset>
+            <label><input type="checkbox" name="uint16" />uint16</label>
+            <label><input type="checkbox" checked name="int16" />int16</label>
+            <label><input type="checkbox" name="uint32" />uint32</label>
+            <label><input type="checkbox" name="int32" />int32</label>
+            <label><input type="checkbox" checked name="float32" />float32</label>
+            <label><input type="checkbox" checked name="onlyValid" />Accept only frames with a valid data field</label>
+        </fieldset>
         <p>First frams are for CRC/LRC/formats testing purpose only</p>
         <table>
             <thead>
