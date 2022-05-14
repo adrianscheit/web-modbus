@@ -107,8 +107,35 @@
         </fieldset>
     </form>
     <section>
+        <h3>Send frame (not implemented)</h3>
+        <p>If there is already a master on the bus, this can cause a frame colision!</p>
+        <form>
+            <fieldset disabled>
+                <label>
+                    Function code
+                    <select name="functionCode" required>
+                        <option value="1">Read Coils</option>
+                        <option value="2">Read Discrete Inputs</option>
+                        <option value="3">Read Holding Registers</option>
+                        <option value="4">Read Input Registers</option>
+                    </select>
+                </label>
+                <label>
+                    address
+                    <input type="number" name="address" min="0" max="65535" step="1" required />
+                </label>
+                <label>
+                    quantity
+                    <input type="number" name="quantity" min="1" max="2048" step="1" required />
+                </label>
+                <input type="submit" />
+            </fieldset>
+        </form>
+    </section>
+    <section>
         <h3>Sniffer</h3>
         <fieldset>
+            <button type="button" id="clearSnifferButton">Clear table</button>
             <label><input type="checkbox" name="Uint8" />Uint8</label>
             <label><input type="checkbox" name="Int8" />Int8</label>
             <label><input type="checkbox" name="Uint16" />Uint16</label>
@@ -118,7 +145,6 @@
             <label><input type="checkbox" checked name="Float32" />Float32</label>
             <label><input type="checkbox" name="Float64" />Float64</label>
             <label><input type="checkbox" checked name="onlyValid" />Accept only frames with a valid data field</label>
-            <button type="button" id="clearSnifferButton">Clear table</button>
         </fieldset>
         <p>First frams are for CRC/LRC/formats testing purpose only</p>
         <table>
