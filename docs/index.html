@@ -37,6 +37,11 @@
         label {
             cursor: pointer;
         }
+
+        fieldset[disabled] {
+            color: #555;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 
@@ -108,7 +113,7 @@
     </form>
     <section>
         <h3>Send frame (not implemented)</h3>
-        <p>If there is already a master on the bus, this can cause a frame colision!</p>
+        <p>If there is already a master on the bus, this operation can cause a frame colision on the bus!</p>
         <form>
             <fieldset disabled>
                 <label>
