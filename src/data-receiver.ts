@@ -81,7 +81,7 @@ export class RtuDataReceiver extends DataReceiver {
                     const validFrame = new Frame(bytes.slice(i, -2));
                     if (getInputChecked('onlyValid')) {
                         if (this.history.length < 4 || validFrame.isNoValidDataFormat()) {
-                            console.warn('Found end of frame but the data field seems invalid!', this.history, validFrame);
+                            console.warn(`Found end of frame (i=${i}) but the data field seems invalid!`, validFrame);
                             continue;
                         }
                     }

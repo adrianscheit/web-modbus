@@ -42,5 +42,6 @@ export const insertSniffedRow = (columns: TableDataColumn[]): void => {
 };
 
 export const getInputChecked = (name: string): boolean => {
-    return (document.querySelector(`input[type=checkbox][name=${name}]`) as any)?.checked;
+    const input: HTMLInputElement = document.querySelector(`input[type=checkbox][name=${name}]`)!;
+    return input.checked;
 }

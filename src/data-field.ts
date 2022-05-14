@@ -6,79 +6,76 @@ export interface DataField {
 
 const toUInt16 = (data: number[], offset: number): number => data[offset] << 8 ^ data[offset + 1];
 
-class DataAddressQuantity {
+class AddressQuantity {
     readonly address: number;
     readonly quantity: number;
 
     constructor(data: number[]) {
         if (data.length !== 4) {
-            throw new Error(`Invalid data format for DataAddressQuantity!`);
+            throw new Error(`Invalid data format for AddressQuantity!`);
         }
         this.address = toUInt16(data, 0);
         this.quantity = toUInt16(data, 2);
     }
 }
 
-class DataBooleans {
+class Booleans {
     static readonly bitsInByte: number[] = [0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01];
     readonly onOff: boolean[];
 
     constructor(data: number[]) {
         if (data[0] !== data.length - 1) {
-            throw new Error(`Invalid data format for DataBooleans!`);
+            throw new Error(`Invalid data format for Booleans!`);
         }
-        this.onOff = data.slice(1).flatMap((byte) => DataBooleans.bitsInByte.map((bit) => !!(bit & byte)));
+        this.onOff = data.slice(1).flatMap((byte) => Booleans.bitsInByte.map((bit) => !!(bit & byte)));
     }
 }
 
-class DataRegisters {
-    readonly uInt16?: number[];
-    readonly int16?: number[];
-    readonly float32?: number[];
-    readonly uInt32?: number[];
-    readonly int32?: number[];
+class Registers {
+    // readonly Uint8?: number[];
+    // readonly Int8?: number[];
+    // readonly Uint16?: number[];
+    // readonly Int16?: number[];
+    // readonly Uint32?: number[];
+    // readonly Unt32?: number[];
+    // readonly Float32?: number[];
+    // readonly Float64?: number[];
 
     constructor(data: number[]) {
         if (data[0] !== data.length - 1 || (data[0] & 0x1) !== 0) {
-            throw new Error(`Invalid data format for DataRegisters!`);
+            throw new Error(`Invalid data format for Registers!`);
         }
         const dataView = new DataView(new Uint8Array(data).buffer);
-        for (let i = 1; i < data.length; i += 2) {
-            if (getInputChecked('uint16')) {
-                if (!this.uInt16) this.uInt16 = [];
-                this.uInt16.push(dataView.getUint16(i, false));
+        this.createEmptyArrayIfValid(dataView, 'Uint', 1);
+        this.createEmptyArrayIfValid(dataView, 'Int', 1);
+        this.createEmptyArrayIfValid(dataView, 'Uint', 2);
+        this.createEmptyArrayIfValid(dataView, 'Int', 2);
+        this.createEmptyArrayIfValid(dataView, 'Uint', 4);
+        this.createEmptyArrayIfValid(dataView, 'Int', 4);
+        this.createEmptyArrayIfValid(dataView, 'Float', 4);
+        this.createEmptyArrayIfValid(dataView, 'Float', 8);
+    }
+
+    private createEmptyArrayIfValid(dataView: DataView, type: 'Int' | 'Uint' | 'Float', quantityOfBytes: 1 | 2 | 4 | 8): void {
+        const dataTypeName = `${type}${quantityOfBytes * 8}`;
+        if (getInputChecked(dataTypeName)) {
+            const dataViewGetter = `get${dataTypeName}`;
+            const resultArray: number[] = [];
+            for (let i = 1; i <= dataView.byteLength - quantityOfBytes; i += quantityOfBytes) {
+                resultArray.push((dataView as any)[dataViewGetter](i, false));
             }
-            if (getInputChecked('int16')) {
-                if (!this.int16) this.int16 = [];
-                this.int16.push(dataView.getInt16(i, false));
-            }
-        }
-        if ((data[0] & 0x3) === 0 && data[0] >= 4) {
-            for (let i = 1; i < data.length; i += 4) {
-                if (getInputChecked('uint32')) {
-                    if (!this.uInt32) this.uInt32 = [];
-                    this.uInt32.push(dataView.getUint32(i, false));
-                }
-                if (getInputChecked('int32')) {
-                    if (!this.int32) this.int32 = [];
-                    this.int32.push(dataView.getInt32(i, false));
-                }
-                if (getInputChecked('float32')) {
-                    if (!this.float32) this.float32 = [];
-                    this.float32.push(dataView.getFloat32(i, false));
-                }
-            }
+            (this as any)[dataTypeName] = resultArray;
         }
     }
 }
 
-class DataWriteSingleBoolean {
+class WriteSingleBoolean {
     readonly address: number;
     readonly onOff: boolean;
 
     constructor(data: number[]) {
         if (data.length !== 4) {
-            throw new Error(`Invalid data format for DataWriteSingleBoolean!`);
+            throw new Error(`Invalid data format for WriteSingleBoolean!`);
         }
         this.address = toUInt16(data, 0);
         if (data[2] === 0x00 && data[3] === 0x00) {
@@ -91,42 +88,42 @@ class DataWriteSingleBoolean {
     }
 }
 
-class DataAddressData {
+class AddressData {
     readonly address: number;
     readonly data: number;
 
     constructor(data: number[]) {
         if (data.length !== 4) {
-            throw new Error(`Invalid data format for DataAddressData!`);
+            throw new Error(`Invalid data format for AddressData!`);
         }
         this.address = toUInt16(data, 0);
         this.data = toUInt16(data, 2);
     }
 }
 
-class DataAddressQuantityBooleans {
-    readonly dataAddressQuantity: DataAddressQuantity;
-    readonly dataBooleans: DataBooleans;
+class AddressQuantityBooleans {
+    readonly addressQuantity: AddressQuantity;
+    readonly booleans: Booleans;
 
     constructor(data: number[]) {
         if (data.length <= 4) {
-            throw new Error(`Invalid data format for DataAddressQuantityBooleans!`);
+            throw new Error(`Invalid data format for AddressQuantityBooleans!`);
         }
-        this.dataAddressQuantity = new DataAddressQuantity(data.slice(0, 4));
-        this.dataBooleans = new DataBooleans(data.slice(4));
+        this.addressQuantity = new AddressQuantity(data.slice(0, 4));
+        this.booleans = new Booleans(data.slice(4));
     }
 }
 
-class DataAddressQuantityRegisters {
-    readonly dataAddressQuantity: DataAddressQuantity;
-    readonly dataRegisters: DataRegisters;
+class AddressQuantityRegisters {
+    readonly addressQuantity: AddressQuantity;
+    readonly registers: Registers;
 
     constructor(data: number[]) {
         if (data.length <= 4) {
-            throw new Error(`Invalid data format for DataAddressQuantityRegisters!`);
+            throw new Error(`Invalid data format for AddressQuantityRegisters!`);
         }
-        this.dataAddressQuantity = new DataAddressQuantity(data.slice(0, 4));
-        this.dataRegisters = new DataRegisters(data.slice(4));
+        this.addressQuantity = new AddressQuantity(data.slice(0, 4));
+        this.registers = new Registers(data.slice(4));
     }
 }
 
@@ -136,12 +133,12 @@ interface DataFieldFormats {
 }
 
 export const dataFieldStrategies: { [code: number]: DataFieldFormats } = {
-    0x01: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataBooleans },
-    0x02: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataBooleans },
-    0x03: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataRegisters },
-    0x04: { fromMasterToSlave: DataAddressQuantity, fromSlaveToMaster: DataRegisters },
-    0x05: { fromMasterToSlave: DataWriteSingleBoolean, fromSlaveToMaster: DataWriteSingleBoolean },
-    0x06: { fromMasterToSlave: DataAddressData, fromSlaveToMaster: DataAddressData },
-    0x0f: { fromMasterToSlave: DataAddressQuantityBooleans, fromSlaveToMaster: DataAddressQuantity },
-    0x10: { fromMasterToSlave: DataAddressQuantityRegisters, fromSlaveToMaster: DataAddressQuantity },
+    0x01: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Booleans },
+    0x02: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Booleans },
+    0x03: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Registers },
+    0x04: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Registers },
+    0x05: { fromMasterToSlave: WriteSingleBoolean, fromSlaveToMaster: WriteSingleBoolean },
+    0x06: { fromMasterToSlave: AddressData, fromSlaveToMaster: AddressData },
+    0x0f: { fromMasterToSlave: AddressQuantityBooleans, fromSlaveToMaster: AddressQuantity },
+    0x10: { fromMasterToSlave: AddressQuantityRegisters, fromSlaveToMaster: AddressQuantity },
 };
