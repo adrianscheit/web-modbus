@@ -1,7 +1,7 @@
 /// <reference types="w3c-web-serial" />
 
 import { AsciiDataReceiver, DataReceiver, RtuDataReceiver } from "./data-receiver";
-import { clearError, reportError, setSerialFieldsetDisable } from "./dom";
+import { clearError, clearSniffingTable, reportError, setSerialFieldsetDisable } from "./dom";
 import { intTest } from "./int.spec";
 
 const serial: Serial = navigator.serial;
@@ -9,6 +9,10 @@ if (!serial) {
     reportError('No serial support in this browser!');
     setSerialFieldsetDisable(true);
 }
+
+document.getElementById('clearSnifferButton')?.addEventListener('click', () => {
+    clearSniffingTable();
+});
 
 document.querySelector('form')!.addEventListener('submit', event => {
     event.preventDefault();
