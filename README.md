@@ -4,7 +4,7 @@ https://adrianscheit.github.io/modbus/
 - simple low-lever serial Modbus toolset for most PC's (also MAC's), to easly debug a modbus network, 
 - that everyone could possible use it without a need to install some dedicated software
 
-Currently it is is only an "beta" version.
+Currently it is is only a "beta" version.
 Currently it is without a license.
 
 ### Done
