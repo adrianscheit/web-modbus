@@ -142,6 +142,8 @@ export class Frame {
     readonly functionCode: number;
     readonly fromMasterToSlave?: any;
     readonly fromSlaveToMaster?: any;
+    readonly fromMasterToSlaveError?: string;
+    readonly fromSlaveToMasterError?: string;
 
     constructor(readonly data: number[]) {
         this.slaveAddress = data.shift()!;
@@ -151,17 +153,21 @@ export class Frame {
             try {
                 this.fromMasterToSlave = new specificFormat.fromMasterToSlave(data);
             } catch (e: any) {
-                this.fromMasterToSlave = this.getError(e);
+                this.fromMasterToSlaveError = this.getError(e);
             }
             try {
                 this.fromSlaveToMaster = new specificFormat.fromSlaveToMaster(data);
             } catch (e: any) {
-                this.fromSlaveToMaster = this.getError(e);
+                this.fromSlaveToMasterError = this.getError(e);
             }
         }
     }
 
-    getError(e: any): string {
+    isNoValidDataFormat(): boolean {
+        return !!this.fromMasterToSlaveError && !!this.fromSlaveToMasterError;
+    }
+
+    private getError(e: any): string {
         return `${e.message}`;
     }
 }

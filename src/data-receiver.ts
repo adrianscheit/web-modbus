@@ -1,44 +1,35 @@
+import { insertSniffedRow, TableDataColumn } from "./dom";
 import { Frame as Frame } from "./frame";
 import { getFunctionCodeDescription, valueToHex } from "./function-codes";
 
 export abstract class DataReceiver {
-    protected snifferTable: HTMLElement = document.querySelector('tbody')!;
 
     receive(data: Uint8Array): void {
         // console.log('received: ', data);
     }
 
-    getItemElement(text: string, error: boolean = false) {
-        const td = document.createElement('td');
-        td.appendChild(document.createTextNode(text));
-        if (error) {
-            td.classList.add('error');
-        }
-        return td;
-    }
-
     report(success: boolean, bytes: number[]): void {
-        const tr = document.createElement('tr');
         const now = new Date();
         const time = `${now.toLocaleTimeString()}+${now.getMilliseconds()}ms`;
         if (success) {
             const frame = new Frame(bytes);
-            [
-                time,
-                `${frame.slaveAddress}`,
-                `${frame.functionCode}`,
-                getFunctionCodeDescription(frame.functionCode),
-                `${bytes.length}`,
-            ].forEach((it) => tr.appendChild(this.getItemElement(it)));
-            const items: any[] = [frame.fromMasterToSlave, frame.fromSlaveToMaster];
-            if (typeof items[0] === 'string' && typeof items[1] === 'string') {
-                items.forEach((it) => tr.appendChild(this.getItemElement(`${it} ${this.getBytesAsHex(bytes)}`, true)));
+            const columns = [
+                new TableDataColumn(time),
+                new TableDataColumn(`${frame.slaveAddress}`),
+                new TableDataColumn(`${frame.functionCode}`),
+                new TableDataColumn(getFunctionCodeDescription(frame.functionCode)),
+                new TableDataColumn(`${bytes.length}`),
+            ];
+            if (frame.isNoValidDataFormat()) {
+                [frame.fromMasterToSlaveError, frame.fromSlaveToMasterError]
+                    .forEach((it) => columns.push(new TableDataColumn(`${it} ${this.getBytesAsHex(bytes)}`, true)));
             } else {
-                items.forEach((it) => tr.appendChild(this.getItemElement(typeof it === 'object' ? JSON.stringify(it, undefined, 1) : '')));
+                [frame.fromMasterToSlave, frame.fromSlaveToMaster]
+                    .forEach((it) => columns.push(new TableDataColumn(JSON.stringify(it))));
             }
+            insertSniffedRow(columns);
         } else {
-            tr.classList.add('error');
-            [
+            insertSniffedRow([
                 time,
                 ``,
                 ``,
@@ -46,12 +37,12 @@ export abstract class DataReceiver {
                 `${bytes.length}`,
                 this.getBytesAsHex(bytes),
                 ``,
-            ].forEach((it) => tr.appendChild(this.getItemElement(it)));
+            ].map((it) => new TableDataColumn(it, true)));
         }
-        this.snifferTable.insertBefore(tr, this.snifferTable.firstChild);
+
     }
 
-    getBytesAsHex(bytes: number[]): string {
+    protected getBytesAsHex(bytes: number[]): string {
         return bytes.map((it) => valueToHex(it)).join(' ');
     }
 }

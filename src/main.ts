@@ -1,19 +1,12 @@
 /// <reference types="w3c-web-serial" />
 
 import { AsciiDataReceiver, DataReceiver, RtuDataReceiver } from "./data-receiver";
+import { clearError, reportError, setSerialFieldsetDisable } from "./dom";
 
-const domError: Text = document.querySelector('h2.error')!.appendChild(document.createTextNode(''));
-
-const reportError = (error?: any): void => {
-    console.error(error);
-    domError.nodeValue = `Error: ${error}`;
-}
-
-const fieldset: HTMLFieldSetElement = document.querySelector('fieldset')!;
 const serial: Serial = navigator.serial;
 if (!serial) {
     reportError('No serial support in this browser!');
-    fieldset.disabled = true;
+    setSerialFieldsetDisable(true);
 }
 
 document.querySelector('form')!.addEventListener('submit', event => {
@@ -30,8 +23,8 @@ const start = (serialOptions: SerialOptions, dataReceiver: DataReceiver) => {
     serial.requestPort().then((serialPort: SerialPort) => {
         console.log('serialPort', serialPort);
         serialPort.open(serialOptions).then(async () => {
-            domError.nodeValue = '';
-            fieldset.disabled = true;
+            clearError();
+            setSerialFieldsetDisable(true);
 
             while (serialPort.readable) {
                 const reader: ReadableStreamDefaultReader<Uint8Array> = serialPort.readable.getReader();
@@ -50,7 +43,7 @@ const start = (serialOptions: SerialOptions, dataReceiver: DataReceiver) => {
                 }
             }
             await serialPort.close();
-            fieldset.disabled = false;
+            setSerialFieldsetDisable(false);
         }, reportError);
     }, console.warn);
 };
