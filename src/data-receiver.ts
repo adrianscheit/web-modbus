@@ -2,6 +2,11 @@ import { insertSniffedRow, TableDataColumn } from "./dom";
 import { Frame as Frame } from "./frame";
 import { getFunctionCodeDescription, valueToHex } from "./function-codes";
 
+export const getTime = (): string => {
+    const now = new Date();
+    return `${now.toLocaleTimeString()}+${now.getMilliseconds()}ms`;
+};
+
 export abstract class DataReceiver {
 
     receive(data: Uint8Array): void {
@@ -9,17 +14,16 @@ export abstract class DataReceiver {
     }
 
     report(success: boolean, bytes: number[]): void {
-        const now = new Date();
-        const time = `${now.toLocaleTimeString()}+${now.getMilliseconds()}ms`;
+        const time = getTime();
         if (success) {
             const frame = new Frame(bytes);
             const columns = [
-                new TableDataColumn(time),
-                new TableDataColumn(`${frame.slaveAddress}`),
-                new TableDataColumn(`${frame.functionCode}`),
-                new TableDataColumn(getFunctionCodeDescription(frame.functionCode)),
-                new TableDataColumn(`${bytes.length}`),
-            ];
+                time,
+                `${frame.slaveAddress}`,
+                `${frame.functionCode}`,
+                getFunctionCodeDescription(frame.functionCode),
+                `${bytes.length}`,
+            ].map((it) => new TableDataColumn(it, false));
             if (frame.isNoValidDataFormat()) {
                 [frame.fromMasterToSlaveError, frame.fromSlaveToMasterError]
                     .forEach((it) => columns.push(new TableDataColumn(`${it} ${this.getBytesAsHex(bytes)}`, true)));
