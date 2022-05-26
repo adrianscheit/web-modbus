@@ -34,6 +34,9 @@ export const reportInvalidData = (bytes: number[]): void => {
         getDateTime(),
         ``,
         ``,
+        ``,
+        ``,
+        ``,
         getBytesAsHex(bytes),
     ].map((it) => new TableDataColumn(it, true)));
 };

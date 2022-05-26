@@ -1,7 +1,7 @@
 /// <reference types="w3c-web-serial" />
 
 import { AsciiDataReceiver, DataReceiver, RtuDataReceiver } from "./data-receiver";
-import { clearError, clearSniffingTable, reportError, setSerialFieldsetDisable } from "./dom";
+import { clearError, clearSniffingTable, downloadAllSniffedEntries, reportError, setSerialFieldsetDisable } from "./dom";
 import { intTest } from "./int.spec";
 
 const serial: Serial = navigator.serial;
@@ -12,6 +12,9 @@ if (!serial) {
 
 document.getElementById('clearSnifferButton')?.addEventListener('click', () => {
     clearSniffingTable();
+});
+document.getElementById('downloadSnifferButton')?.addEventListener('click', () => {
+    downloadAllSniffedEntries();
 });
 
 document.querySelector('form')!.addEventListener('submit', event => {
