@@ -2,9 +2,9 @@ import { getInputChecked, insertSniffedRow, TableDataColumn } from "./dom";
 import { Frame as Frame } from "./frame";
 import { getFunctionCodeDescription, valueToHex } from "./function-codes";
 
-export const getTime = (): string => {
+export const getDateTime = (): string => {
     const now = new Date();
-    return `${now.toLocaleTimeString()}+${now.getMilliseconds()}ms`;
+    return `${now.toLocaleString()}+${now.getMilliseconds()}ms`;
 };
 
 const getBytesAsHex = (bytes: number[]): string => {
@@ -13,7 +13,7 @@ const getBytesAsHex = (bytes: number[]): string => {
 
 export const reportValidFrame = (frame: Frame): void => {
     const columns = [
-        getTime(),
+        getDateTime(),
         `${frame.slaveAddress}`,
         `${frame.functionCode}`,
         getFunctionCodeDescription(frame.functionCode),
@@ -31,7 +31,7 @@ export const reportValidFrame = (frame: Frame): void => {
 
 export const reportInvalidData = (bytes: number[]): void => {
     insertSniffedRow([
-        getTime(),
+        getDateTime(),
         ``,
         ``,
         getBytesAsHex(bytes),
@@ -44,7 +44,7 @@ export abstract class DataReceiver {
     }
 }
 
-class CurrentByte {
+class RtuCurrentByte {
     crc: number = 0xFFFF;
 
     constructor(public readonly byte: number) {
@@ -64,7 +64,7 @@ class CurrentByte {
 }
 
 export class RtuDataReceiver extends DataReceiver {
-    history: CurrentByte[] = [];
+    history: RtuCurrentByte[] = [];
     timeoutHandler?: any;
 
     receive(data: Uint8Array): void {
@@ -74,7 +74,7 @@ export class RtuDataReceiver extends DataReceiver {
         }
         this.timeoutHandler = setTimeout(() => this.resetFrame(), 300);
         data.forEach((byte) => {
-            this.history.push(new CurrentByte(byte));
+            this.history.push(new RtuCurrentByte(byte));
             for (let i = 0; i < this.history.length; ++i) {
                 if (this.history[i].updateCrc(byte)) {
                     const bytes = this.history.map((it) => it.byte);

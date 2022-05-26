@@ -1,4 +1,4 @@
-import { getTime } from "./data-receiver";
+import { getDateTime } from "./data-receiver";
 
 const domError: Text = document.querySelector('h2.error')!.appendChild(document.createTextNode(''));
 export const reportError = (error?: any): void => {
@@ -6,7 +6,7 @@ export const reportError = (error?: any): void => {
     const errorMessage = `Error: ${error}`;
     domError.nodeValue = errorMessage;
     insertSniffedRow([
-        new TableDataColumn(getTime(), true),
+        new TableDataColumn(getDateTime(), true),
         new TableDataColumn(''),
         new TableDataColumn(''),
         new TableDataColumn(errorMessage, true),
