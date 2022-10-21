@@ -5,7 +5,7 @@
   "main": "main.ts",
   "scripts": {
     "test": "webpack && start-browser.sh",
-    "start": "webpack && git pull && git add -A && git commit -m. && git push"
+    "start": "git pull && webpack && git add -A && git commit -m. && git push"
   },
   "repository": {
     "type": "git",

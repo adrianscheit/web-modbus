@@ -56,4 +56,4 @@ const start = (serialOptions: SerialOptions, dataReceiver: DataReceiver) => {
     }, console.warn);
 };
 
-intTest();
+// intTest();
