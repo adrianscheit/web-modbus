@@ -30,3 +30,10 @@ Currently it is without a license.
 - move the tests to a dedicated test framework like `jest`
 - simple master??? maybe out of scope for this project
 
+### Local development
+```sh
+git config --global user.name ""
+git config --global user.email ""
+ssh-keygen -t ed25519
+cat ~/.ssh/id_ecdsa.pub # copy to GitHub
+```
