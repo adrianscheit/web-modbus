@@ -1,5 +1,5 @@
 # Modbus
-https://adrianscheit.github.io/modbus/
+https://adrianscheit.github.io/web-modbus/
 ## Goals: 
 - simple low-lever serial Modbus toolset for most PC's (also MAC's), to easly debug a modbus network, 
 - that everyone could possible use it without a need to install some dedicated software
