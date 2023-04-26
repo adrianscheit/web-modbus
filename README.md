@@ -1,4 +1,4 @@
-# Modbus
+# WEB Modbus
 https://adrianscheit.github.io/web-modbus/
 ## Goals: 
 - simple "low-level" (regarding the Modbus protocol) Web Serial API Modbus toolset for most PC's (also MAC's), to easly debug a Modbus network, 
