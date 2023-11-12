@@ -1,22 +1,22 @@
 {
-  "name": "modbus",
+  "name": "web-modbus",
   "version": "0.0.1",
   "description": "",
-  "main": "main.ts",
+  "main": "src/main.ts",
   "scripts": {
     "start": "webpack && start-browser.sh",
     "d": "git pull && npm outdated && npm update && webpack && git status && git add -A && git commit -m. && git push"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/adrianscheit/modbus.git"
+    "url": "git+https://github.com/adrianscheit/web-modbus.git"
   },
   "author": "",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/adrianscheit/modbus/issues"
+    "url": "https://github.com/adrianscheit/web-modbus/issues"
   },
-  "homepage": "https://github.com/adrianscheit/modbus#readme",
+  "homepage": "https://github.com/adrianscheit/web-modbus#readme",
   "devDependencies": {
     "@types/w3c-web-serial": "1",
     "ts-loader": "9",
