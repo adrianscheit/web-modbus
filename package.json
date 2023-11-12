@@ -5,7 +5,7 @@
   "main": "src/main.ts",
   "scripts": {
     "start": "webpack && start-browser.sh",
-    "d": "git pull && npm outdated && npm update && webpack && git status && git add -A && git commit -m. && git push"
+    "d": "git pull && npm outdated && npm update && webpack && git status && git commit -am. && git push"
   },
   "repository": {
     "type": "git",
