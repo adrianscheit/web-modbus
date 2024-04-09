@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/main.ts",
   "scripts": {
-    "start": "npm run build && http-server -o / docs",
+    "start": "npm run build && http-server -o / pages",
     "build": "webpack",
     "d": "git pull && npm outdated && npm update && npm run build && git status && git commit -am. && git push"
   },
