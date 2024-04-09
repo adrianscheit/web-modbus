@@ -4,8 +4,9 @@
   "description": "",
   "main": "src/main.ts",
   "scripts": {
-    "start": "webpack && http-server -o / docs",
-    "d": "git pull && npm outdated && npm update && webpack && git status && git commit -am. && git push"
+    "start": "npm run build && http-server -o / docs",
+    "build": "webpack",
+    "d": "git pull && npm outdated && npm update && npm run build && git status && git commit -am. && git push"
   },
   "repository": {
     "type": "git",
