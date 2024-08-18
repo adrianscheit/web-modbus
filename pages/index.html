@@ -119,6 +119,10 @@
             <fieldset disabled>
                 <legend>options</legend>
                 <label>
+                    Slave address:
+                    <input type="number" name="address" min="0" max="65535" step="1" required />
+                </label>
+                <label>
                     Function code
                     <select name="functionCode" required>
                         <option value="1">Read Coils</option>
@@ -126,10 +130,6 @@
                         <option value="3">Read Holding Registers</option>
                         <option value="4">Read Input Registers</option>
                     </select>
-                </label>
-                <label>
-                    address
-                    <input type="number" name="address" min="0" max="65535" step="1" required />
                 </label>
                 <label>
                     quantity
