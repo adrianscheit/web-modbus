@@ -5,7 +5,7 @@ export const functionCodes: { [code: number]: string } = {
     0x04: 'Read Input Registers',
     0x05: 'Write Single Coil',
     0x06: 'Write Single Register',
-    0x07: 'Read Status',
+    0x07: 'Read Exceptions Status',
     0x08: 'Diagnostic Test',
     0x0f: 'Write Multiple Coils',
     0x10: 'Write Multiple Registers',
@@ -25,14 +25,14 @@ export const errorCodes: { [code: number]: string } = {
     0x91: 'Gateway Target Device Failed to Respond',
 };
 
-export const valueToHex = (value: number): string => value == null ?
+export const byteToHex = (value: number): string => value == null ?
     `${value}` :
     `0x${value < 16 ? '0' : ''}${value.toString(16)}`;
 
 export const getFunctionCodeDescription = (code: number): string => {
     if (code & 0x80) {
-        return errorCodes[code] || `Unknown error ${valueToHex(code)}`;
+        return errorCodes[code] || `Unknown error ${byteToHex(code)}`;
     } else {
-        return functionCodes[code] || `Unknown function ${valueToHex(code)}`;
+        return functionCodes[code] || `Unknown function ${byteToHex(code)}`;
     }
 }

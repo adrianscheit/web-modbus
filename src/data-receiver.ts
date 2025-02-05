@@ -1,6 +1,6 @@
 import { getInputChecked, insertSniffedRow, TableDataColumn } from "./dom";
 import { Frame as Frame } from "./frame";
-import { getFunctionCodeDescription, valueToHex } from "./function-codes";
+import { getFunctionCodeDescription, byteToHex } from "./function-codes";
 
 export const getDateTime = (): string => {
     const now = new Date();
@@ -8,7 +8,7 @@ export const getDateTime = (): string => {
 };
 
 const getBytesAsHex = (bytes: number[]): string => {
-    return bytes.map((it) => valueToHex(it)).join(' ');
+    return bytes.map((it) => byteToHex(it)).join(' ');
 }
 
 export const reportValidFrame = (frame: Frame): void => {
