@@ -3,7 +3,7 @@
 import { DataField, dataFieldStrategies } from "./data-field";
 import { AsciiDataReceiver, DataReceiver, RtuDataReceiver } from "./data-receiver";
 import { addLabel, clearError, clearSniffingTable, downloadAllSniffedEntries, reportError, setSerialFieldsetDisable } from "./dom";
-import { byteToHex, functionCodes } from "./function-codes";
+import { byteToHex, errorCodes, functionCodes } from "./function-codes";
 import { intTest } from "./int.spec";
 
 const serial: Serial = navigator.serial;
@@ -19,44 +19,6 @@ document.getElementById('downloadSnifferButton')!.addEventListener('click', () =
     downloadAllSniffedEntries();
 });
 
-const functionCodeList = document.getElementById('functionCodeList')!;
-for (const [code, description] of Object.entries(functionCodes)) {
-    const option = document.createElement('option');
-    option.value = code;
-    option.appendChild(document.createTextNode(description));
-    functionCodeList.appendChild(option);
-}
-const dynamicForm = document.getElementById('dynamicForm')!;
-document.getElementById('functionCode')!.addEventListener('change', (event: Event) => {
-    const functionCode = +(event.target! as any).value;
-
-    dynamicForm.replaceChildren();
-
-    const dataField: any | undefined = dataFieldStrategies[functionCode]?.fromMasterToSlave;
-    console.log(functionCode, dataField);
-    if (!dataField) {
-        const textArea = document.createElement('textarea');
-        textArea.name = 'rawData';
-        textArea.required = true;
-        dynamicForm.appendChild(addLabel('Raw data(hex):', textArea));
-    } else {
-        const add16UIntInput = (name: string): void => {
-            const input = document.createElement('input');
-            input.required = true;
-            input.type = 'number';
-            input.min = '0';
-            input.max = '65535';
-            input.step = '1';
-            input.name = name;
-
-            dynamicForm.appendChild(addLabel(`${name}:`, input));
-        };
-        add16UIntInput('address');
-        // Not always:
-        add16UIntInput('quantity');
-    }
-});
-
 interface ConnectionForm {
     modbusmode: 'ASCII' | 'RTU';
     baudRate: number;
@@ -65,12 +27,16 @@ interface ConnectionForm {
     dataBits?: 7 | 8;
 }
 
-document.querySelector('form')!.addEventListener('submit', event => {
+const extractFormData = <T>(form: any): T => {
+    return Object.fromEntries(
+        [...form].map((it: any): [string, string] => [it.name, it.value])
+    ) as T;
+};
+
+document.querySelector('form')!.addEventListener('submit', (event) => {
     event.preventDefault();
-    const formData: ConnectionForm = Object.fromEntries(
-        [...event.target as any]
-            .map((it: any): [string, string | number] => [it.name, (+it.value || it.value)])
-    ) as any;
+    const formData: ConnectionForm = extractFormData(event.target);
+    formData.baudRate = +formData.baudRate;
     formData.stopBits = formData.parity !== 'none' ? 1 : 2;
     formData.dataBits = formData.modbusmode === 'ASCII' ? 7 : 8;
     console.log(formData);
@@ -105,5 +71,30 @@ const start = (serialOptions: SerialOptions, dataReceiver: DataReceiver) => {
         }, reportError);
     }, console.warn);
 };
+
+const functionCodeList = document.getElementById('functionCodeList')!;
+const addFunctionCodeListOption = (code: string, description: string): void => {
+    const option = document.createElement('option');
+    option.value = code;
+    option.appendChild(document.createTextNode(description));
+    functionCodeList.appendChild(option);
+};
+[...Object.entries(functionCodes), ...Object.entries(errorCodes)].forEach(([code, description]) => addFunctionCodeListOption(code, description));
+document.querySelector('form[name=send]')!.addEventListener('submit', event => {
+    event.preventDefault();
+    const formData: { slaveAddress: number, functionCode: number, data: string } = extractFormData(event.target);
+    formData.slaveAddress = +formData.slaveAddress;
+    formData.functionCode = +formData.functionCode;
+    let data = formData.data.toString();
+    if (data.length % 2 !== 0) {
+        data = `0${data}`;
+    }
+    const bytes: number[] = [];
+    for (let i = 0; i < data.length; i = +2) {
+        bytes.push(parseInt(data.substring(i, 2), 16));
+    }
+    const frameByts = new Uint8Array([formData.slaveAddress, formData.functionCode, ...bytes]);
+    console.log(formData, frameByts);
+});
 
 // intTest();

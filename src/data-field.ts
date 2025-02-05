@@ -69,9 +69,9 @@ class Registers {
     }
 }
 
-class WriteSingleBoolean {
+class AddressBoolean {
     readonly address: number;
-    readonly onOff: boolean;
+    readonly boolean: boolean;
 
     constructor(data: number[]) {
         if (data.length !== 4) {
@@ -79,25 +79,25 @@ class WriteSingleBoolean {
         }
         this.address = toUInt16(data, 0);
         if (data[2] === 0x00 && data[3] === 0x00) {
-            this.onOff = false;
+            this.boolean = false;
         } else if (data[2] === 0xFF && data[3] === 0x00 || data[2] === 0x00 && data[3] === 0xFF) {
-            this.onOff = true;
+            this.boolean = true;
         } else {
             throw new Error('Invalid data format for single register... Allowed only: 0xFF00, 0x00FF, 0x0000');
         }
     }
 }
 
-class AddressData {
+class AddressRegister {
     readonly address: number;
-    readonly data: number;
+    readonly register: number;
 
     constructor(data: number[]) {
         if (data.length !== 4) {
             throw new Error(`Invalid data format for AddressData!`);
         }
         this.address = toUInt16(data, 0);
-        this.data = toUInt16(data, 2);
+        this.register = toUInt16(data, 2);
     }
 }
 
@@ -135,8 +135,8 @@ export const dataFieldStrategies: { [code: number]: DataFieldFormats } = {
     0x02: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Booleans },
     0x03: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Registers },
     0x04: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Registers },
-    0x05: { fromMasterToSlave: WriteSingleBoolean, fromSlaveToMaster: WriteSingleBoolean },
-    0x06: { fromMasterToSlave: AddressData, fromSlaveToMaster: AddressData },
+    0x05: { fromMasterToSlave: AddressBoolean, fromSlaveToMaster: AddressBoolean },
+    0x06: { fromMasterToSlave: AddressRegister, fromSlaveToMaster: AddressRegister },
     0x0f: { fromMasterToSlave: AddressQuantityBooleans, fromSlaveToMaster: AddressQuantity },
     0x10: { fromMasterToSlave: AddressQuantityRegisters, fromSlaveToMaster: AddressQuantity },
 };

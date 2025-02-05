@@ -110,7 +110,7 @@
     <section>
         <h3>Send frame (not implemented yet)</h3>
         <p>If there is already a master on the bus, this operation can cause a frame colision on the bus!</p>
-        <form>
+        <form name="send">
             <fieldset disabled>
                 <legend>Send frame as Modbus-master:</legend>
                 <label>
@@ -123,7 +123,10 @@
                         step="1" required></select>
                     <datalist id="functionCodeList"></datalist>
                 </label>
-                <span id="dynamicForm"></span>
+                <label>
+                    Raw data (hex);
+                    <textarea name="data" maxlength="2048"></textarea>
+                </label>
                 <input type="submit" />
             </fieldset>
         </form>
