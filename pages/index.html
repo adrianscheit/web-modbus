@@ -58,6 +58,13 @@
         <fieldset>
             <legend>Serial connection</legend>
             <label>
+                Modbus mode
+                <select name="modbusmode" required>
+                    <option>RTU</option>
+                    <option>ASCII</option>
+                </select>
+            </label>
+            <label>
                 baudRate
                 <input type="number" name="baudRate" list="baudRate" min="300" max="10000000" step="1" value="9600"
                     required />
@@ -91,10 +98,6 @@
                 <input type="number" name="dataBits" min="7" max="8" step="1" value="8" required />
             </label>
             <label>
-                stopBits
-                <input type="number" name="stopBits" min="1" max="2" step="1" value="1" required />
-            </label>
-            <label>
                 parity
                 <select name="parity" required>
                     <option>none</option>
@@ -103,41 +106,41 @@
                 </select>
             </label>
             <label>
-                Modbus mode
-                <select name="modbusmode" required>
-                    <option>RTU</option>
-                    <option>ASCII</option>
-                </select>
+                stopBits
+                <input type="number" name="stopBits" min="1" max="2" step="1" value="1" required />
             </label>
             <input type="submit" />
         </fieldset>
     </form>
     <section>
-        <h3>Send frame (not implemented)</h3>
+        <h3>Send frame (not implemented yet)</h3>
         <p>If there is already a master on the bus, this operation can cause a frame colision on the bus!</p>
         <form>
             <fieldset disabled>
-                <legend>options</legend>
+                <legend>Send frame as Modbus-master:</legend>
                 <label>
                     Slave address:
                     <input type="number" name="slaveAddress" min="0" max="255" step="1" required />
                 </label>
                 <label>
-                    Function code
-                    <select name="functionCode" required>
-                        <option value="1">Read Coils</option>
-                        <option value="2">Read Discrete Inputs</option>
-                        <option value="3">Read Holding Registers</option>
-                        <option value="4">Read Input Registers</option>
-                    </select>
+                    Function code:
+                    <select id="functionCode" name="functionCode" required></select>
                 </label>
                 <label>
-                    address:
+                    Address:
                     <input type="number" name="address" min="0" max="65535" step="1" required />
                 </label>
                 <label>
-                    quantity
+                    Quantity:
                     <input type="number" name="quantity" min="1" max="2048" step="1" required />
+                </label>
+                <label>
+                    Data:
+                    <input type="checkbox" name="onOff" required />
+                </label>
+                <label>
+                    Data:
+                    <input type="number" name="data" min="0" max="65535" step="1" required />
                 </label>
                 <input type="submit" />
             </fieldset>

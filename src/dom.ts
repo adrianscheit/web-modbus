@@ -65,9 +65,8 @@ export const downloadAllSniffedEntries = (): void => {
         return;
     }
     const csvString = allSniffedEntries.join('\r\n');
-    const universalBOM = "\uFEFF";
     const a = window.document.createElement('a');
-    a.setAttribute('href', 'data:text/csv; charset=utf-8,' + encodeURIComponent(universalBOM + csvString));
+    a.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString));
     a.setAttribute('download', `${allSniffedEntries[0].substring(0, 20)}-${allSniffedEntries[allSniffedEntries.length - 1].substring(0, 20)}.csv`);
     a.click();
 }

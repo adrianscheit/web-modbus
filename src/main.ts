@@ -2,6 +2,7 @@
 
 import { AsciiDataReceiver, DataReceiver, RtuDataReceiver } from "./data-receiver";
 import { clearError, clearSniffingTable, downloadAllSniffedEntries, reportError, setSerialFieldsetDisable } from "./dom";
+import { byteToHex, functionCodes } from "./function-codes";
 import { intTest } from "./int.spec";
 
 const serial: Serial = navigator.serial;
@@ -10,12 +11,20 @@ if (!serial) {
     setSerialFieldsetDisable(true);
 }
 
-document.getElementById('clearSnifferButton')?.addEventListener('click', () => {
+document.getElementById('clearSnifferButton')!.addEventListener('click', () => {
     clearSniffingTable();
 });
-document.getElementById('downloadSnifferButton')?.addEventListener('click', () => {
+document.getElementById('downloadSnifferButton')!.addEventListener('click', () => {
     downloadAllSniffedEntries();
 });
+
+const functionCodeSelect = document.getElementById('functionCode')!;
+for (const [code, description] of Object.entries(functionCodes)) {
+    const option = document.createElement('option');
+    option.value = code;
+    option.appendChild(document.createTextNode(`${byteToHex(+code)} ${description}`));
+    functionCodeSelect.appendChild(option);
+}
 
 document.querySelector('form')!.addEventListener('submit', event => {
     event.preventDefault();
