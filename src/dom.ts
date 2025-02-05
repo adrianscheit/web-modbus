@@ -5,12 +5,7 @@ export const reportError = (error?: any): void => {
     console.error(error);
     const errorMessage = `Error: ${error}`;
     domError.nodeValue = errorMessage;
-    insertSniffedRow([
-        new TableDataColumn(getDateTime(), true),
-        new TableDataColumn(''),
-        new TableDataColumn(''),
-        new TableDataColumn(errorMessage, true),
-    ]);
+    insertErrorRow(errorMessage);
 };
 export const clearError = (): void => {
     domError.nodeValue = ``;
@@ -22,16 +17,15 @@ export const setSerialFieldsetDisable = (disabled: boolean): void => {
 };
 
 export class TableDataColumn {
-    readonly td: HTMLElement;
-    readonly csvText: string;
+    readonly td: HTMLElement = document.createElement('td');
+    readonly csvLine: string;
 
-    constructor(text: string, error: boolean = false) {
-        this.td = document.createElement('td');
+    constructor(text: string, className: '' | 'error' = '') {
         this.td.appendChild(document.createTextNode(text));
-        if (error) {
-            this.td.classList.add('error');
+        if (className) {
+            this.td.classList.add(className);
         }
-        this.csvText = `${`${text}`.replace(/[\n\r]/gm, "").replace(/,/gm, ';')},`;
+        this.csvLine = `${`${text}`.replace(/[\n\r]/gm, "").replace(/,/gm, ';')},`;
     }
 }
 
@@ -44,7 +38,18 @@ export const insertSniffedRow = (columns: TableDataColumn[]): void => {
     if (snifferTable.childElementCount > 1000) {
         snifferTable.removeChild(snifferTable.lastChild!);
     }
-    allSniffedEntries.unshift(columns.map((it) => it.csvText).join(''))
+    allSniffedEntries.unshift(columns.map((it) => it.csvLine).join(''))
+};
+export const insertErrorRow = (errorMessage: string): void => {
+    insertSniffedRow([
+        getDateTime(),
+        ``,
+        ``,
+        ``,
+        ``,
+        ``,
+        errorMessage,
+    ].map((it) => new TableDataColumn(it, 'error')));
 };
 
 export const getInputChecked = (name: string): boolean => {
@@ -69,4 +74,10 @@ export const downloadAllSniffedEntries = (): void => {
     a.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString));
     a.setAttribute('download', `${allSniffedEntries[0].substring(0, 20)}-${allSniffedEntries[allSniffedEntries.length - 1].substring(0, 20)}.csv`);
     a.click();
+}
+export const addLabel = (text: string, input: HTMLElement): HTMLLabelElement => {
+    const label = document.createElement('label');
+    label.appendChild(document.createTextNode(text));
+    label.appendChild(input);
+    return label;
 }

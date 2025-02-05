@@ -1,4 +1,4 @@
-import { getInputChecked, insertSniffedRow, TableDataColumn } from "./dom";
+import { getInputChecked, insertErrorRow, insertSniffedRow, TableDataColumn } from "./dom";
 import { Frame as Frame } from "./frame";
 import { getFunctionCodeDescription, byteToHex } from "./function-codes";
 
@@ -18,10 +18,10 @@ export const reportValidFrame = (frame: Frame): void => {
         `${frame.functionCode}`,
         getFunctionCodeDescription(frame.functionCode),
         `${frame.data.length}`,
-    ].map((it) => new TableDataColumn(it, false));
+    ].map((it) => new TableDataColumn(it));
     if (frame.isNoValidDataFormat()) {
         [frame.fromMasterToSlaveError, frame.fromSlaveToMasterError]
-            .forEach((it) => columns.push(new TableDataColumn(`${it} ${getBytesAsHex(frame.data)}`, true)));
+            .forEach((it) => columns.push(new TableDataColumn(`${it} ${getBytesAsHex(frame.data)}`, 'error')));
     } else {
         [frame.fromMasterToSlave, frame.fromSlaveToMaster]
             .forEach((it) => columns.push(new TableDataColumn(JSON.stringify(it, undefined, 2))));
@@ -30,15 +30,7 @@ export const reportValidFrame = (frame: Frame): void => {
 };
 
 export const reportInvalidData = (bytes: number[]): void => {
-    insertSniffedRow([
-        getDateTime(),
-        ``,
-        ``,
-        ``,
-        ``,
-        ``,
-        getBytesAsHex(bytes),
-    ].map((it) => new TableDataColumn(it, true)));
+    insertErrorRow(getBytesAsHex(bytes));
 };
 
 export abstract class DataReceiver {
