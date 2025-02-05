@@ -1,7 +1,7 @@
 /// <reference types="w3c-web-serial" />
 
 import { DataField, dataFieldStrategies } from "./data-field";
-import { AsciiDataReceiver, DataReceiver, RtuDataReceiver } from "./data-receiver";
+import { AsciiModeStrategy, ModeStrategy, RtuModeStrategy } from "./mode";
 import { addLabel, clearError, clearSniffingTable, downloadAllSniffedEntries, insertFrameRow, reportError, setSerialFieldsetDisable } from "./dom";
 import { Frame } from "./frame";
 import { byteToHex, errorCodes, functionCodes } from "./function-codes";
@@ -41,10 +41,10 @@ document.querySelector('form')!.addEventListener('submit', (event) => {
     formData.stopBits = formData.parity !== 'none' ? 1 : 2;
     formData.dataBits = formData.modbusmode === 'ASCII' ? 7 : 8;
     console.log(formData);
-    start(formData, formData.modbusmode === 'ASCII' ? new AsciiDataReceiver() : new RtuDataReceiver());
+    start(formData, formData.modbusmode === 'ASCII' ? new AsciiModeStrategy() : new RtuModeStrategy());
 });
 
-const start = (serialOptions: SerialOptions, dataReceiver: DataReceiver) => {
+const start = (serialOptions: SerialOptions, dataReceiver: ModeStrategy) => {
     clearError();
     serial.requestPort().then((serialPort: SerialPort) => {
         console.log('serialPort', serialPort);
@@ -93,8 +93,10 @@ document.querySelector('form[name=send]')!.addEventListener('submit', event => {
         console.log(data.substring(i, 2));
         bytes.push(parseInt(data.substring(i, i + 2), 16));
     }
-    const frameBytes = new Uint8Array([formData.slaveAddress, formData.functionCode, ...bytes]);
-    insertFrameRow(new Frame(Array.from(frameBytes)), 'send');
+    const frameBytes: number[] = [formData.slaveAddress, formData.functionCode, ...bytes];
+    insertFrameRow(new Frame([...frameBytes]), 'send');
+    new AsciiModeStrategy().send(frameBytes);
+    new RtuModeStrategy().send(frameBytes);
 });
 
 // intTest();

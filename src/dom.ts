@@ -15,7 +15,7 @@ export const reportError = (error?: any): void => {
     console.error(error);
     const errorMessage = `Error: ${error}`;
     domError.nodeValue = errorMessage;
-    insertErrorRow(errorMessage);
+    insertErrorRow(errorMessage, undefined);
 };
 export const clearError = (): void => {
     domError.nodeValue = ``;
@@ -79,12 +79,12 @@ export const insertFrameRow = (frame: Frame, className: '' | 'send' = ''): void 
 
     insertSniffedRow(columns);
 };
-export const insertErrorRow = (errorMessage: string): void => {
+export const insertErrorRow = (errorMessage: string, dataLength: number | undefined): void => {
     insertSniffedRow([
         getDateTime(),
         ``,
         ``,
-        ``,
+        `${dataLength === undefined ? '' : dataLength}`,
         errorMessage,
     ].map((it) => new TableDataColumn(it, 'error')));
 };

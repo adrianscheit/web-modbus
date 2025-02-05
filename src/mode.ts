@@ -6,13 +6,12 @@ export const reportValidFrame = (frame: Frame): void => {
 };
 
 export const reportInvalidData = (bytes: number[]): void => {
-    insertErrorRow(getBytesAsHex(bytes));
+    insertErrorRow(getBytesAsHex(bytes), bytes.length);
 };
 
-export abstract class DataReceiver {
-    receive(data: Uint8Array): void {
-        // console.log('received: ', data);
-    }
+export abstract class ModeStrategy {
+    abstract receive(data: Uint8Array): void;
+    abstract send(bytes: number[]): Uint8Array;
 }
 
 class RtuCurrentByte {
@@ -34,12 +33,11 @@ class RtuCurrentByte {
     }
 }
 
-export class RtuDataReceiver extends DataReceiver {
+export class RtuModeStrategy extends ModeStrategy {
     history: RtuCurrentByte[] = [];
     timeoutHandler?: any;
 
     receive(data: Uint8Array): void {
-        super.receive(data);
         if (this.timeoutHandler) {
             clearTimeout(this.timeoutHandler!);
         }
@@ -71,20 +69,29 @@ export class RtuDataReceiver extends DataReceiver {
         });
     }
 
-    resetFrame(): void {
+    private resetFrame(): void {
         console.warn('timeout');
         reportInvalidData(this.history.map((it) => it.byte));
         this.history = [];
     }
+
+    send(bytes: number[]): Uint8Array {
+        const crc = new RtuCurrentByte(0);
+        bytes.forEach((byte) => crc.updateCrc(byte));
+        const firstCrcByte = crc.crc & 0xff;
+        crc.updateCrc(firstCrcByte);
+        const result = new Uint8Array([...bytes, firstCrcByte, crc.crc]);
+        this.receive(result);
+        return result;
+    }
 }
 
-export class AsciiDataReceiver extends DataReceiver {
+export class AsciiModeStrategy extends ModeStrategy {
     frameChars: number[] = [];
     frameBytes: number[] = [];
     currentLrc: number = 0x00;
 
     receive(data: Uint8Array): void {
-        super.receive(data);
         data.forEach((it) => this.frameChars.push(it));
         while (this.frameChars.length >= 2) {
             const char: number = this.frameChars.shift()!;
@@ -112,7 +119,7 @@ export class AsciiDataReceiver extends DataReceiver {
         }
     }
 
-    resetFrame(): void {
+    private resetFrame(): void {
         if (this.frameBytes.length) {
             reportInvalidData(this.frameBytes);
             this.frameBytes = [];
@@ -120,7 +127,21 @@ export class AsciiDataReceiver extends DataReceiver {
         }
     }
 
-    updateLrc(byte: number): void {
+    private updateLrc(byte: number): void {
         this.currentLrc += byte;
+    }
+
+    send(bytes: number[]): Uint8Array {
+        let lrc = 0;
+        bytes.forEach((byte) => lrc += byte);
+        const line = `:${bytes.map((byte) => this.byteToString(byte)).join('')}${this.byteToString(-lrc & 0xff)}\r\n`;
+        console.log(bytes, line);
+        const result = Uint8Array.from(line.split('').map((char) => char.charCodeAt(0)));
+        this.receive(result);
+        return result;
+    }
+
+    private byteToString(byte: number): string {
+        return byte.toString(16).toUpperCase().padStart(2, '0');
     }
 }
