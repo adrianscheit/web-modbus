@@ -25,14 +25,17 @@ const serialFieldset: HTMLFieldSetElement = document.querySelector('fieldset')!;
 const sendFieldset: HTMLFieldSetElement = document.querySelector('form[name=send] fieldset')!;
 export const setSerialFieldsetDisable = (disabled: boolean): void => {
     serialFieldset.disabled = disabled;
-    sendFieldset.disabled = !disabled;
 };
+export const setSendFieldsetDisable = (disabled: boolean): void => {
+    sendFieldset.disabled = disabled;
+};
+
 
 export class TableDataColumn {
     readonly td: HTMLElement = document.createElement('td');
     readonly csv: string;
 
-    constructor(text: string, className: '' | 'error' = '') {
+    constructor(text: string, className: '' | 'error' | 'send' = '') {
         this.td.appendChild(document.createTextNode(text));
         if (className) {
             this.td.classList.add(className);
@@ -52,13 +55,13 @@ export const insertSniffedRow = (columns: TableDataColumn[]): void => {
     }
     allSniffedEntries.unshift(columns.map((it) => it.csv).join(','))
 };
-export const insertFrameRow = (frame: Frame): void => {
+export const insertFrameRow = (frame: Frame, className: '' | 'send' = ''): void => {
     const columns = [
         getDateTime(),
         `${frame.slaveAddress}`,
         `${frame.functionCode} ${getFunctionCodeDescription(frame.functionCode)}`,
         `${frame.data.length}`,
-    ].map((it) => new TableDataColumn(it));
+    ].map((it) => new TableDataColumn(it, className));
     if (frame.isNoValidDataFormat()) {
         [frame.fromMasterToSlaveError, frame.fromSlaveToMasterError]
             .forEach((it) => columns.push(new TableDataColumn(`${it} ${getBytesAsHex(frame.data)}`, 'error')));

@@ -2,7 +2,8 @@
 
 import { DataField, dataFieldStrategies } from "./data-field";
 import { AsciiDataReceiver, DataReceiver, RtuDataReceiver } from "./data-receiver";
-import { addLabel, clearError, clearSniffingTable, downloadAllSniffedEntries, reportError, setSerialFieldsetDisable } from "./dom";
+import { addLabel, clearError, clearSniffingTable, downloadAllSniffedEntries, insertFrameRow, reportError, setSerialFieldsetDisable } from "./dom";
+import { Frame } from "./frame";
 import { byteToHex, errorCodes, functionCodes } from "./function-codes";
 import { intTest } from "./int.spec";
 
@@ -85,16 +86,16 @@ document.querySelector('form[name=send]')!.addEventListener('submit', event => {
     const formData: { slaveAddress: number, functionCode: number, data: string } = extractFormData(event.target);
     formData.slaveAddress = +formData.slaveAddress;
     formData.functionCode = +formData.functionCode;
-    let data = formData.data.toString();
-    if (data.length % 2 !== 0) {
-        data = `0${data}`;
-    }
+    formData.data = formData.data.toString().replaceAll(/[\n\r\s]+/gm, '');
+    let data = (formData.data.length & 1 ? '0' : '') + formData.data;
     const bytes: number[] = [];
-    for (let i = 0; i < data.length; i = +2) {
-        bytes.push(parseInt(data.substring(i, 2), 16));
+    for (let i = 0; i < data.length; i += 2) {
+        console.log(data.substring(i, 2));
+        bytes.push(parseInt(data.substring(i, i + 2), 16));
     }
-    const frameByts = new Uint8Array([formData.slaveAddress, formData.functionCode, ...bytes]);
-    console.log(formData, frameByts);
+    const frameBytes = new Uint8Array([formData.slaveAddress, formData.functionCode, ...bytes]);
+    console.log(formData, frameBytes);
+    insertFrameRow(new Frame(Array.from(frameBytes)), 'send');
 });
 
 // intTest();

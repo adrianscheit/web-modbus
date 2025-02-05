@@ -11,6 +11,12 @@
     <style>
         .error {
             color: #d00;
+            background-color: #ffd;
+        }
+
+        .send {
+            color: #00d;
+            background-color: #efe;
         }
 
         table {
@@ -111,8 +117,8 @@
         <h3>Send frame (not implemented yet)</h3>
         <p>If there is already a master on the bus, this operation can cause a frame colision on the bus!</p>
         <form name="send">
-            <fieldset disabled>
-                <legend>Send frame as Modbus-master:</legend>
+            <fieldset>
+                <legend>Send any frame:</legend>
                 <label>
                     Slave address:
                     <input type="number" name="slaveAddress" min="0" max="255" step="1" required />
@@ -136,7 +142,8 @@
         <fieldset>
             <legend>options</legend>
             <button type="button" id="clearSnifferButton">Clear all sniffed data</button>
-            <label><input type="checkbox" checked name="onlyValid" />Accept only a valid data field (applies only to RTU)</label>
+            <label><input type="checkbox" checked name="onlyValid" />Accept only a valid data field (applies only to
+                RTU)</label>
             <label><input type="checkbox" name="Uint8" />Uint8</label>
             <label><input type="checkbox" name="Int8" />Int8</label>
             <label><input type="checkbox" name="Uint16" />Uint16</label>
