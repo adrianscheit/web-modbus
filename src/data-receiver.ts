@@ -1,32 +1,8 @@
-import { getInputChecked, insertErrorRow, insertSniffedRow, TableDataColumn } from "./dom";
-import { Frame as Frame } from "./frame";
-import { getFunctionCodeDescription, byteToHex } from "./function-codes";
-
-export const getDateTime = (): string => {
-    const now = new Date();
-    return `${now.toLocaleString()}+${now.getMilliseconds()}ms`;
-};
-
-const getBytesAsHex = (bytes: number[]): string => {
-    return bytes.map((it) => byteToHex(it)).join(' ');
-}
+import { getBytesAsHex, getInputChecked, insertErrorRow, insertFrameRow } from "./dom";
+import { Frame } from "./frame";
 
 export const reportValidFrame = (frame: Frame): void => {
-    const columns = [
-        getDateTime(),
-        `${frame.slaveAddress}`,
-        `${frame.functionCode}`,
-        getFunctionCodeDescription(frame.functionCode),
-        `${frame.data.length}`,
-    ].map((it) => new TableDataColumn(it));
-    if (frame.isNoValidDataFormat()) {
-        [frame.fromMasterToSlaveError, frame.fromSlaveToMasterError]
-            .forEach((it) => columns.push(new TableDataColumn(`${it} ${getBytesAsHex(frame.data)}`, 'error')));
-    } else {
-        [frame.fromMasterToSlave, frame.fromSlaveToMaster]
-            .forEach((it) => columns.push(new TableDataColumn(JSON.stringify(it, undefined, 2))));
-    }
-    insertSniffedRow(columns);
+    insertFrameRow(frame);
 };
 
 export const reportInvalidData = (bytes: number[]): void => {

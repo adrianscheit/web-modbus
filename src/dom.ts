@@ -1,4 +1,14 @@
-import { getDateTime } from "./data-receiver";
+import { Frame } from "./frame";
+import { byteToHex, getFunctionCodeDescription } from "./function-codes";
+
+export const getBytesAsHex = (bytes: number[]): string => {
+    return bytes.map((it) => byteToHex(it)).join(' ');
+}
+
+const getDateTime = (): string => {
+    const now = new Date();
+    return `${now.toLocaleString()}+${now.getMilliseconds()}ms`;
+};
 
 const domError: Text = document.querySelector('h2.error')!.appendChild(document.createTextNode(''));
 export const reportError = (error?: any): void => {
@@ -42,10 +52,25 @@ export const insertSniffedRow = (columns: TableDataColumn[]): void => {
     }
     allSniffedEntries.unshift(columns.map((it) => it.csv).join(','))
 };
+export const insertFrameRow = (frame: Frame): void => {
+    const columns = [
+        getDateTime(),
+        `${frame.slaveAddress}`,
+        `${frame.functionCode} ${getFunctionCodeDescription(frame.functionCode)}`,
+        `${frame.data.length}`,
+    ].map((it) => new TableDataColumn(it));
+    if (frame.isNoValidDataFormat()) {
+        [frame.fromMasterToSlaveError, frame.fromSlaveToMasterError]
+            .forEach((it) => columns.push(new TableDataColumn(`${it} ${getBytesAsHex(frame.data)}`, 'error')));
+    } else {
+        [frame.fromMasterToSlave, frame.fromSlaveToMaster]
+            .forEach((it) => columns.push(new TableDataColumn(JSON.stringify(it, undefined, 2))));
+    }
+    insertSniffedRow(columns);
+};
 export const insertErrorRow = (errorMessage: string): void => {
     insertSniffedRow([
         getDateTime(),
-        ``,
         ``,
         ``,
         ``,
