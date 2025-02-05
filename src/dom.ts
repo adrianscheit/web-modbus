@@ -62,19 +62,26 @@ export const insertFrameRow = (frame: Frame, className: '' | 'send' = ''): void 
         `${frame.functionCode} ${getFunctionCodeDescription(frame.functionCode)}`,
         `${frame.data.length}`,
     ].map((it) => new TableDataColumn(it, className));
-    if (frame.isNoValidDataFormat()) {
-        [frame.fromMasterToSlaveError, frame.fromSlaveToMasterError]
-            .forEach((it) => columns.push(new TableDataColumn(`${it} ${getBytesAsHex(frame.data)}`, 'error')));
+
+    if (frame.isUnknownFrame()) {
+        columns.push(new TableDataColumn(`Unknown frame: ${getBytesAsHex(frame.data)}`, 'error'));
+    } else if (frame.isNoValidDataFormat()) {
+        columns.push(new TableDataColumn(`This frame format does not fit to the function: 
+            fromMasterToSlaveError=${frame.fromMasterToSlaveError} 
+            fromSlaveToMasterError=${frame.fromSlaveToMasterError}
+            , for: ${getBytesAsHex(frame.data)}`, 'error'));
     } else {
-        [frame.fromMasterToSlave, frame.fromSlaveToMaster]
-            .forEach((it) => columns.push(new TableDataColumn(JSON.stringify(it, undefined, 2))));
+        columns.push(new TableDataColumn(
+            JSON.stringify(frame.fromMasterToSlave) +
+            JSON.stringify(frame.fromSlaveToMaster)
+        ));
     }
+
     insertSniffedRow(columns);
 };
 export const insertErrorRow = (errorMessage: string): void => {
     insertSniffedRow([
         getDateTime(),
-        ``,
         ``,
         ``,
         ``,

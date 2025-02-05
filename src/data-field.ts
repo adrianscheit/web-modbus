@@ -21,13 +21,13 @@ class AddressQuantity {
 
 class Booleans {
     static readonly bitsInByte: number[] = [0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01];
-    readonly onOff: boolean[];
+    readonly booleans: boolean[];
 
     constructor(data: number[]) {
         if (data[0] !== data.length - 1) {
             throw new Error(`Invalid data format for Booleans!`);
         }
-        this.onOff = data.slice(1).flatMap((byte) => Booleans.bitsInByte.map((bit) => !!(bit & byte)));
+        this.booleans = data.slice(1).flatMap((byte) => Booleans.bitsInByte.map((bit) => !!(bit & byte)));
     }
 }
 

@@ -30,6 +30,10 @@ export class Frame {
         return !!this.fromMasterToSlaveError && !!this.fromSlaveToMasterError;
     }
 
+    isUnknownFrame(): boolean {
+        return !this.isNoValidDataFormat() && !this.fromMasterToSlave && !this.fromSlaveToMaster;
+    }
+
     protected getError(e: any): string {
         return `${e.message}`;
     }

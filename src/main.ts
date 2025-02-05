@@ -94,7 +94,6 @@ document.querySelector('form[name=send]')!.addEventListener('submit', event => {
         bytes.push(parseInt(data.substring(i, i + 2), 16));
     }
     const frameBytes = new Uint8Array([formData.slaveAddress, formData.functionCode, ...bytes]);
-    console.log(formData, frameBytes);
     insertFrameRow(new Frame(Array.from(frameBytes)), 'send');
 });
 
