@@ -101,28 +101,26 @@ class AddressData {
     }
 }
 
-class AddressQuantityBooleans {
-    readonly addressQuantity: AddressQuantity;
+class AddressQuantityBooleans extends AddressQuantity {
     readonly booleans: Booleans;
 
     constructor(data: number[]) {
         if (data.length <= 4) {
             throw new Error(`Invalid data format for AddressQuantityBooleans!`);
         }
-        this.addressQuantity = new AddressQuantity(data.slice(0, 4));
+        super(data.slice(0, 4));
         this.booleans = new Booleans(data.slice(4));
     }
 }
 
-class AddressQuantityRegisters {
-    readonly addressQuantity: AddressQuantity;
+class AddressQuantityRegisters extends AddressQuantity {
     readonly registers: Registers;
 
     constructor(data: number[]) {
         if (data.length <= 4) {
             throw new Error(`Invalid data format for AddressQuantityRegisters!`);
         }
-        this.addressQuantity = new AddressQuantity(data.slice(0, 4));
+        super(data.slice(0, 4));
         this.registers = new Registers(data.slice(4));
     }
 }
