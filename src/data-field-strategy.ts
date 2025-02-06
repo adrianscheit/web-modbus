@@ -124,3 +124,28 @@ export class AddressQuantityRegisters extends AddressQuantity {
         this.registers = new Registers(data.slice(4));
     }
 }
+
+export class Exception {
+    static exceptionDescriptions: ReadonlyMap<number, string> = new Map<number, string>([
+        [0x81, 'Illegal Function'],
+        [0x82, 'Illegal Data Address'],
+        [0x83, 'Illegal Data Value'],
+        [0x84, 'Server Device Failure'],
+        [0x85, 'Acknowledge'],
+        [0x86, 'Server Device Busy'],
+        [0x87, 'Negative Acknowledge'],
+        [0x88, 'Memory Parity Error'],
+        [0x90, 'Gateway Path Unavailable'],
+        [0x91, 'Gateway Target Device Failed to Respond'],
+    ]);
+    code: number;
+    description: string | undefined;
+
+    constructor(data: number[]) {
+        if (data.length !== 1) {
+            throw new Error('Just on byte of exception code is allowed!');
+        }
+        this.code = data[0];
+        this.description = Exception.exceptionDescriptions.get(this.code);
+    }
+}
