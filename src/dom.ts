@@ -1,9 +1,6 @@
+import { Converters } from "./converters";
 import { Frame } from "./frame";
-import { byteToHex, getFunctionCodeDescription } from "./function-codes";
-
-export const getBytesAsHex = (bytes: number[]): string => {
-    return bytes.map((it) => byteToHex(it)).join(' ');
-}
+import { getFunctionCodeDescription } from "./function-codes";
 
 const getDateTime = (): string => {
     const now = new Date();
@@ -64,12 +61,12 @@ export const insertFrameRow = (frame: Frame, className: '' | 'send' = ''): void 
     ].map((it) => new TableDataColumn(it, className));
 
     if (frame.isUnknownFrame()) {
-        columns.push(new TableDataColumn(`Unknown frame: ${getBytesAsHex(frame.data)}`, 'error'));
+        columns.push(new TableDataColumn(`Unknown frame: 0x${Converters.bytesAsHex(frame.data)}`, 'error'));
     } else if (frame.isNoValidDataFormat()) {
         columns.push(new TableDataColumn(`This frame format does not fit to the function: 
             fromMasterToSlaveError=${frame.fromMasterToSlaveError} 
             fromSlaveToMasterError=${frame.fromSlaveToMasterError}
-            , for: ${getBytesAsHex(frame.data)}`, 'error'));
+            , for: 0x${Converters.bytesAsHex(frame.data)}`, 'error'));
     } else {
         columns.push(new TableDataColumn(
             JSON.stringify(frame.fromMasterToSlave) +

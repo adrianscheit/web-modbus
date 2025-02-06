@@ -1,10 +1,9 @@
 /// <reference types="w3c-web-serial" />
 
-import { DataField, dataFieldStrategies } from "./data-field";
 import { AsciiModeStrategy, ModeStrategy, RtuModeStrategy } from "./mode";
-import { addLabel, clearError, clearSniffingTable, downloadAllSniffedEntries, insertFrameRow, reportError, setSerialFieldsetDisable } from "./dom";
+import { clearError, clearSniffingTable, downloadAllSniffedEntries, insertFrameRow, reportError, setSerialFieldsetDisable } from "./dom";
 import { Frame } from "./frame";
-import { byteToHex, errorCodes, functionCodes } from "./function-codes";
+import { errorCodes, functionCodes } from "./function-codes";
 import { intTest } from "./int.spec";
 
 const serial: Serial = navigator.serial;

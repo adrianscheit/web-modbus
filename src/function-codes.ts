@@ -1,3 +1,5 @@
+import { Converters } from "./converters";
+
 export const functionCodes: { [code: number]: string } = {
     0x01: 'Read Coils',
     0x02: 'Read Discrete Inputs',
@@ -25,14 +27,11 @@ export const errorCodes: { [code: number]: string } = {
     0x91: 'Gateway Target Device Failed to Respond',
 };
 
-export const byteToHex = (value: number): string => value == null ?
-    `${value}` :
-    `0x${value < 16 ? '0' : ''}${value.toString(16)}`;
 
 export const getFunctionCodeDescription = (code: number): string => {
-    if (code & 0x80) {
-        return errorCodes[code] || `Unknown error ${byteToHex(code)}`;
-    } else {
-        return functionCodes[code] || `Unknown function ${byteToHex(code)}`;
+    const description = functionCodes[code] ?? errorCodes[code];
+    if (description) {
+        return `0x${Converters.byteToHex(code)} ${description}`;
     }
+    return `0x${Converters.byteToHex(code)} UNKNOWN`;
 }

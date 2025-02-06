@@ -1,4 +1,5 @@
-import { getBytesAsHex, getInputChecked, insertErrorRow, insertFrameRow } from "./dom";
+import { Converters } from "./converters";
+import { getInputChecked, insertErrorRow, insertFrameRow } from "./dom";
 import { Frame } from "./frame";
 
 export const reportValidFrame = (frame: Frame): void => {
@@ -6,7 +7,7 @@ export const reportValidFrame = (frame: Frame): void => {
 };
 
 export const reportInvalidData = (bytes: number[]): void => {
-    insertErrorRow(getBytesAsHex(bytes), bytes.length);
+    insertErrorRow(Converters.bytesAsHex(bytes), bytes.length);
 };
 
 export abstract class ModeStrategy {
@@ -14,11 +15,8 @@ export abstract class ModeStrategy {
     abstract send(bytes: number[]): Uint8Array;
 }
 
-class RtuCurrentByte {
+class RtuCrc {
     crc: number = 0xFFFF;
-
-    constructor(public readonly byte: number) {
-    }
 
     updateCrc(byte: number): boolean {
         this.crc ^= byte;
@@ -30,6 +28,12 @@ class RtuCurrentByte {
             }
         }
         return this.crc === 0;
+    }
+}
+
+class RtuCurrentByte extends RtuCrc {
+    constructor(public readonly byte: number) {
+        super();
     }
 }
 
@@ -76,11 +80,11 @@ export class RtuModeStrategy extends ModeStrategy {
     }
 
     send(bytes: number[]): Uint8Array {
-        const crc = new RtuCurrentByte(0);
-        bytes.forEach((byte) => crc.updateCrc(byte));
-        const firstCrcByte = crc.crc & 0xff;
-        crc.updateCrc(firstCrcByte);
-        const result = new Uint8Array([...bytes, firstCrcByte, crc.crc]);
+        const rtuCrc = new RtuCrc();
+        bytes.forEach((byte) => rtuCrc.updateCrc(byte));
+        const firstCrcByte = rtuCrc.crc & 0xff;
+        rtuCrc.updateCrc(firstCrcByte);
+        const result = new Uint8Array([...bytes, firstCrcByte, rtuCrc.crc]);
         this.receive(result);
         return result;
     }
@@ -134,14 +138,10 @@ export class AsciiModeStrategy extends ModeStrategy {
     send(bytes: number[]): Uint8Array {
         let lrc = 0;
         bytes.forEach((byte) => lrc += byte);
-        const line = `:${bytes.map((byte) => this.byteToString(byte)).join('')}${this.byteToString(-lrc & 0xff)}\r\n`;
+        const line = `:${Converters.bytesAsHex(bytes)}${Converters.byteToHex(-lrc & 0xff)}\r\n`;
         console.log(bytes, line);
-        const result = Uint8Array.from(line.split('').map((char) => char.charCodeAt(0)));
+        const result = Converters.textAsUInt8Array(line);
         this.receive(result);
         return result;
-    }
-
-    private byteToString(byte: number): string {
-        return byte.toString(16).toUpperCase().padStart(2, '0');
     }
 }

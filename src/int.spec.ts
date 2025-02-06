@@ -1,3 +1,4 @@
+import { Converters } from "./converters";
 import { AsciiModeStrategy, RtuModeStrategy } from "./mode";
 
 export const intTest = (): void => {
@@ -11,7 +12,7 @@ export const intTest = (): void => {
         0x01, 0x10, 0x0F, 0xA3, 0x00, 0x02, 0x04, 0x00, 0x14, 0x07, 0xD0, 0xBB, 0x9A, // valid: expected uint16  20, 2000
     ]));
 
-    new AsciiModeStrategy().receive(new TextEncoder().encode(
+    new AsciiModeStrategy().receive(Converters.textAsUInt8Array(
         '&*^&^%^%$*&&%%$#' + // simply totally invalid frame
         ':0401000A000DE4\r\n' + // valid: address & quantity
         'xyz!@=$%#$;' + // simply totally invalid frame
