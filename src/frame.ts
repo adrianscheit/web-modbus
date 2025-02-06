@@ -1,14 +1,12 @@
 import { Converters } from "./converters";
 import { Dom, TableColumnButton, TableDataColumn } from "./dom";
-import { FunctionCodes } from "./function-codes";
+import { FunctionCodes, StrategyResult } from "./function-codes";
 
 export class Frame {
     readonly slaveAddress: number;
     readonly functionCode?: number;
-    readonly masterRequest?: any;
-    readonly slaveResponse?: any;
-    readonly masterRequestError?: string;
-    readonly slaveResponseError?: string;
+    readonly masterRequest?: StrategyResult;
+    readonly slaveResponse?: StrategyResult;
     readonly hexData: string;
 
     constructor(readonly data: number[], readonly type: 'error' | 'send' | '') {
@@ -19,16 +17,8 @@ export class Frame {
         }
         this.hexData = Converters.bytesAsHex(data);
         if (type !== 'error') {
-            try {
-                this.masterRequest = FunctionCodes.newMasterRequest(this.functionCode!, data);
-            } catch (e: any) {
-                this.masterRequestError = this.getError(e);
-            }
-            try {
-                this.slaveResponse = FunctionCodes.newSlaveResponse(this.functionCode!, data);
-            } catch (e: any) {
-                this.slaveResponseError = this.getError(e);
-            }
+            this.masterRequest = FunctionCodes.newMasterRequest(this.functionCode!, data);
+            this.slaveResponse = FunctionCodes.newSlaveResponse(this.functionCode!, data);
         }
     }
 
@@ -55,21 +45,21 @@ export class Frame {
     private getDataAsText(): string {
         if (this.type === 'error') {
             return `Invalid frame: 0x${this.hexData}`;
-        } else if (this.isUnknownFrame()) {
-            return `No strategies to format data field. Raw data field is: 0x${this.hexData}`;
+        } else if (this.isUnknownFunctionCode()) {
+            return `No strategy to format data field. Raw data field is: 0x${this.hexData}`;
         } else if (this.isNoValidDataFormat()) {
-            return `This frame format does not fit to the known function code: masterRequestError=${this.masterRequestError}; slaveResponseError=${this.slaveResponseError}; raw data: 0x${this.hexData}`;
+            return `This frame format does not fit to any known strategies: masterRequestError=${this.masterRequest?.error}; slaveResponseError=${this.slaveResponse?.error}; raw data: 0x${this.hexData}`;
         } else {
             return `Valid frame: masterRequest=${JSON.stringify(this.masterRequest)}; slaveResponse=${JSON.stringify(this.slaveResponse)}`;
         }
     }
 
-    private isNoValidDataFormat(): boolean {
-        return !!this.masterRequestError && !!this.slaveResponseError;
+    private isUnknownFunctionCode(): boolean {
+        return !this.masterRequest && !this.slaveResponse;
     }
 
-    private isUnknownFrame(): boolean {
-        return !this.isNoValidDataFormat() && !this.masterRequest && !this.slaveResponse;
+    private isNoValidDataFormat(): boolean {
+        return (!this.masterRequest || !!this.masterRequest?.error) && (!this.slaveResponse || !!this.slaveResponse?.error);
     }
 
     protected getError(e: any): string {

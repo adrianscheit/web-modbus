@@ -1,5 +1,5 @@
 import { Converters } from "./converters";
-import { AddressBoolean, AddressQuantity, AddressQuantityBooleans, AddressQuantityRegisters, AddressRegister, Booleans, DataFieldStrategy, Registers } from "./data-field";
+import { AddressBoolean, AddressQuantity, AddressQuantityBooleans, AddressQuantityRegisters, AddressRegister, Booleans, DataFieldStrategy, Registers } from "./data-field-strategy";
 
 interface FunctionCodeDetails {
     readonly code: number;
@@ -31,6 +31,8 @@ const allFunctionCodeDetails: ReadonlySet<FunctionCodeDetails> = new Set<Functio
     { code: 0x90, description: 'Gateway Path Unavailable' },
     { code: 0x91, description: 'Gateway Target Device Failed to Respond' },
 ]);
+
+export type StrategyResult = { object?: Object, error?: string } | undefined;
 
 export class FunctionCodes {
     static descriptions: ReadonlyMap<number, string> = new Map<number, string>([...allFunctionCodeDetails]
@@ -64,19 +66,21 @@ export class FunctionCodes {
         return !!(code & 0x80);
     }
 
-    static newMasterRequest(code: number, dataFieldBytes: number[]): Object | undefined {
-        const strategy = this.masterRequestStrategies.get(code);
-        return this._newDataFieldStrategy(strategy, dataFieldBytes);
+    static newMasterRequest(code: number, dataFieldBytes: number[]): StrategyResult {
+        return this._newDataFieldStrategy(this.masterRequestStrategies.get(code), dataFieldBytes);
     }
 
-    static newSlaveResponse(code: number, dataFieldBytes: number[]): Object | undefined {
-        const strategy = this.slaveResponseStrategies.get(code);
-        return this._newDataFieldStrategy(strategy, dataFieldBytes);
+    static newSlaveResponse(code: number, dataFieldBytes: number[]): StrategyResult {
+        return this._newDataFieldStrategy(this.slaveResponseStrategies.get(code), dataFieldBytes);
     }
 
-    private static _newDataFieldStrategy(strategy: DataFieldStrategy | undefined, dataFieldBytes: number[]): Object | undefined {
+    private static _newDataFieldStrategy(strategy: DataFieldStrategy | undefined, dataFieldBytes: number[]): StrategyResult {
         if (strategy) {
-            return new strategy(dataFieldBytes);
+            try {
+                return { object: new strategy(dataFieldBytes) };
+            } catch (e: any) {
+                return { error: e.message };
+            }
         }
         return undefined;
     }
