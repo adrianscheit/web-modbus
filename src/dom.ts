@@ -118,8 +118,6 @@ export class Dom {
     static readonly serialForm = new DomForm<ConnectionFormData>(document.querySelector('form[name=serial]')!);
     static readonly sendForm = new DomForm<SendFormData>(document.querySelector('form[name=send]')!);
     private static readonly functionCodeList = document.getElementById('functionCodeList')!;
-    static readonly downloadSnifferButton = document.getElementById('downloadSnifferButton')!;
-    static readonly clearSnifferButton = document.getElementById('clearSnifferButton')!;
 
     static addFunctionCodeListOption(code: string, description: string): void {
         const option = document.createElement('option');
@@ -127,4 +125,7 @@ export class Dom {
         option.appendChild(document.createTextNode(`${Converters.byteToHex(+code)} ${description}`));
         Dom.functionCodeList.appendChild(option);
     }
+
+    static readonly downloadSnifferButton = document.getElementById('downloadSnifferButton')!;
+    static readonly clearSnifferButton = document.getElementById('clearSnifferButton')!;
 }
