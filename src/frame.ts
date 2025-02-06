@@ -61,9 +61,9 @@ export class Frame {
         if (this.type === 'error') {
             return `Invalid frame: 0x${this.hexData}`;
         } else if (this.isUnknownFrame()) {
-            return `Function code is invalid: 0x${this.hexData}`;
+            return `Data field format is unknown, data field: 0x${this.hexData}`;
         } else if (this.isNoValidDataFormat()) {
-            return `This frame format does not fit to the function code: fromMasterToSlaveError=${this.fromMasterToSlaveError}; fromSlaveToMasterError=${this.fromSlaveToMasterError}; for: 0x${this.hexData}`;
+            return `This frame format does not fit to the known function code: fromMasterToSlaveError=${this.fromMasterToSlaveError}; fromSlaveToMasterError=${this.fromSlaveToMasterError}; for: 0x${this.hexData}`;
         } else {
             return `Valid frame: fromMasterToSlave=${JSON.stringify(this.fromMasterToSlave)}; fromSlaveToMasterError=${JSON.stringify(this.fromSlaveToMaster)}`;
         }
