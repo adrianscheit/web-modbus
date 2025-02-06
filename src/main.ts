@@ -1,51 +1,39 @@
 /// <reference types="w3c-web-serial" />
 
 import { AsciiModeStrategy, ModeStrategy, RtuModeStrategy } from "./mode";
-import { clearError, clearSniffingTable, downloadAllSniffedEntries, extractFormData, insertFrameRow, reportError, setSerialFieldsetDisable } from "./dom";
+import { clearSniffingTable, Dom, downloadAllSniffedEntries, insertFrameRow } from "./dom";
 import { Frame } from "./frame";
 import { errorCodes, functionCodes } from "./function-codes";
 import { intTest } from "./int.spec";
-import { Converters } from "./converters";
 
 const serial: Serial = navigator.serial;
 if (!serial) {
-    reportError('No serial support in this browser!');
-    setSerialFieldsetDisable(true);
+    reportError('No serial support in this browser. Use current version of Edge, Chrome or Opera.');
+    Dom.serialForm.setFieldsetDisabled(true);
 }
 
-document.getElementById('clearSnifferButton')!.addEventListener('click', () => {
+Dom.clearSnifferButton.addEventListener('click', () => {
     clearSniffingTable();
 });
-document.getElementById('downloadSnifferButton')!.addEventListener('click', () => {
+Dom.downloadSnifferButton.addEventListener('click', () => {
     downloadAllSniffedEntries();
 });
 
-interface ConnectionForm {
-    modbusmode: 'ASCII' | 'RTU';
-    baudRate: number;
-    parity: ParityType;
-    stopBits?: 1 | 2;
-    dataBits?: 7 | 8;
-}
-
-document.querySelector('form')!.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const formData: ConnectionForm = extractFormData(event.target);
+Dom.serialForm.submit = (formData) => {
     formData.baudRate = +formData.baudRate;
     formData.stopBits = formData.parity !== 'none' ? 1 : 2;
-    formData.dataBits = formData.modbusmode === 'ASCII' ? 7 : 8;
-    console.log(formData);
-    start(formData, formData.modbusmode === 'ASCII' ? new AsciiModeStrategy() : new RtuModeStrategy());
-});
+    formData.dataBits = formData.mode === 'ASCII' ? 7 : 8;
+    start(formData, formData.mode === 'ASCII' ? new AsciiModeStrategy() : new RtuModeStrategy());
+};
 
-let send: ((bytest: number[]) => void) | undefined = undefined;
+let send: ((bytest: number[]) => Promise<void>) | undefined = undefined;
 
 const start = (serialOptions: SerialOptions, mode: ModeStrategy) => {
-    clearError();
+    Dom.clearError();
     serial.requestPort().then((serialPort: SerialPort) => {
         console.log('serialPort', serialPort);
         serialPort.open(serialOptions).then(async () => {
-            setSerialFieldsetDisable(true);
+            Dom.serialForm.setFieldsetDisabled(true);
             const writer = serialPort.writable?.getWriter();
             if (writer) {
                 send = async (bytes: number[]) => {
@@ -75,22 +63,14 @@ const start = (serialOptions: SerialOptions, mode: ModeStrategy) => {
             writer?.releaseLock();
             send = undefined;
             await serialPort.close();
-            setSerialFieldsetDisable(false);
+            Dom.sendForm.setFieldsetDisabled(false);
         }, reportError);
     }, console.warn);
 };
 
-const functionCodeList = document.getElementById('functionCodeList')!;
-const addFunctionCodeListOption = (code: string, description: string): void => {
-    const option = document.createElement('option');
-    option.value = code;
-    option.appendChild(document.createTextNode(`${Converters.byteToHex(+code)} ${description}`));
-    functionCodeList.appendChild(option);
-};
-[...Object.entries(functionCodes), ...Object.entries(errorCodes)].forEach(([code, description]) => addFunctionCodeListOption(code, description));
-document.querySelector('form[name=send]')!.addEventListener('submit', event => {
-    event.preventDefault();
-    const formData: { slaveAddress: number, functionCode: number, hexData: string } = extractFormData(event.target);
+[...Object.entries(functionCodes), ...Object.entries(errorCodes)].forEach(([code, description]) => Dom.addFunctionCodeListOption(code, description));
+
+Dom.sendForm.submit = (formData) => {
     formData.slaveAddress = +formData.slaveAddress;
     formData.functionCode = +formData.functionCode;
     formData.hexData = formData.hexData.toString().replaceAll(/[\n\r\s]+/gm, '');
@@ -104,6 +84,6 @@ document.querySelector('form[name=send]')!.addEventListener('submit', event => {
     if (send) {
         send(frameBytes);
     }
-});
+};
 
 // intTest();

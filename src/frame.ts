@@ -1,6 +1,6 @@
 import { Converters } from "./converters";
 import { dataFieldStrategies } from "./data-field";
-import { setFormData, TableColumnButton, TableDataColumn } from "./dom";
+import { Dom, TableColumnButton, TableDataColumn } from "./dom";
 import { getFunctionCodeDescription } from "./function-codes";
 
 export class Frame {
@@ -49,12 +49,8 @@ export class Frame {
             new TableDataColumn(`${this.functionCode}=${this.functionCode === undefined ? '' : getFunctionCodeDescription(this.functionCode)}`, this.type),
             new TableDataColumn(this.getDataLength().toString(), this.type),
             new TableDataColumn(this.getDataAsText(), this.isNoValidDataFormat() ? 'error' : this.type),
-            this.type === 'error' ? new TableDataColumn('', this.type) : new TableColumnButton('To send form', () => this.toSendForm()),
+            this.type === 'error' ? new TableDataColumn('', this.type) : new TableColumnButton('To send form', () => Dom.sendForm.setFormData(this)),
         ];
-    }
-
-    private toSendForm(): void {
-        setFormData(document.querySelector('form[name=send]'), this);
     }
 
     private getDataAsText(): string {

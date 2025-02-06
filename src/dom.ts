@@ -1,37 +1,5 @@
+import { Converters } from "./converters";
 import { Frame } from "./frame";
-
-export const extractFormData = <T>(form: any): T => {
-    return Object.fromEntries(
-        [...form].filter((it) => it.name).map((it: any): [string, string] => [it.name, it.value])
-    ) as T;
-};
-export const setFormData = (form: any, data: any): void => {
-    [...form].forEach((field) => {
-        const value = data[field.name];
-        if (value != undefined) {
-            field.value = value;
-        }
-    });
-};
-
-const domError: Text = document.querySelector('h2.error')!.appendChild(document.createTextNode(''));
-export const reportError = (error?: any): void => {
-    console.error(error);
-    const errorMessage = `Error: ${error}`;
-    domError.nodeValue = errorMessage;
-};
-export const clearError = (): void => {
-    domError.nodeValue = ``;
-};
-
-const serialFieldset: HTMLFieldSetElement = document.querySelector('fieldset')!;
-const sendFieldset: HTMLFieldSetElement = document.querySelector('form[name=send] fieldset')!;
-export const setSerialFieldsetDisable = (disabled: boolean): void => {
-    serialFieldset.disabled = disabled;
-};
-export const setSendFieldsetDisable = (disabled: boolean): void => {
-    sendFieldset.disabled = disabled;
-};
 
 export class TableDataColumn {
     readonly td: HTMLElement = document.createElement('td');
@@ -66,7 +34,7 @@ const insertSniffedRow = (columns: TableDataColumn[]): void => {
     if (snifferTable.childElementCount > 1000) {
         snifferTable.removeChild(snifferTable.lastChild!);
     }
-    allSniffedEntries.unshift(columns.map((it) => it.csv).join(','))
+    allSniffedEntries.unshift(columns.map((it) => it.csv).join(','));
 };
 export const insertFrameRow = (frame: Frame): void => insertSniffedRow(frame.getRow());
 
@@ -87,10 +55,76 @@ export const downloadAllSniffedEntries = (): void => {
     a.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString));
     a.setAttribute('download', `sniffed data ${Frame.getDateTime()}.csv`);
     a.click();
+};
+
+class DomForm<T> {
+    private readonly fieldset: HTMLFieldSetElement;
+    submit?: (data: T) => void;
+
+    constructor(private readonly element: Element) {
+        this.fieldset = element.querySelector('fieldset')!;
+        element.addEventListener('submit', (event) => {
+            event.preventDefault();
+            this.submit?.(this.getFormData());
+        });
+    }
+
+    getFormData(): T {
+        return Object.fromEntries(
+            [...this.element as any].filter((it) => it.name).map((it: any): [string, string] => [it.name, it.value])
+        ) as T;
+    }
+
+    setFormData<T>(data: T): void {
+        [...this.element as any].forEach((field) => {
+            const value = (data as any)[field.name];
+            if (value !== undefined) {
+                field.value = value;
+            }
+        });
+    }
+
+    setFieldsetDisabled(disabled: boolean) {
+        this.fieldset.disabled = disabled;
+    }
 }
-export const addLabel = (text: string, input: HTMLElement): HTMLLabelElement => {
-    const label = document.createElement('label');
-    label.appendChild(document.createTextNode(text));
-    label.appendChild(input);
-    return label;
+
+export interface ConnectionFormData {
+    mode: 'ASCII' | 'RTU';
+    baudRate: number;
+    parity: ParityType;
+    stopBits?: 1 | 2;
+    dataBits?: 7 | 8;
+}
+
+export interface SendFormData {
+    slaveAddress: number;
+    functionCode: number;
+    hexData: string;
+}
+
+export class Dom {
+    private static readonly errorText: Text = document.querySelector('h2.error')!.appendChild(document.createTextNode(''));
+
+    static reportError(error?: any): void {
+        console.error(error);
+        const errorMessage = `Error: ${error}`;
+        this.errorText.nodeValue = errorMessage;
+    }
+    static clearError(): void {
+        this.errorText.nodeValue = ``;
+    }
+
+    static readonly serialForm = new DomForm<ConnectionFormData>(document.querySelector('form[name=serial]')!);
+    static readonly sendForm = new DomForm<SendFormData>(document.querySelector('form[name=send]')!);
+    private static readonly functionCodeList = document.getElementById('functionCodeList')!;
+    static readonly downloadSnifferButton = document.getElementById('downloadSnifferButton')!;
+    static readonly clearSnifferButton = document.getElementById('clearSnifferButton')!;
+
+    static addFunctionCodeListOption(code: string, description: string): void {
+        const option = document.createElement('option');
+        option.value = code;
+        option.appendChild(document.createTextNode(`${Converters.byteToHex(+code)} ${description}`));
+        Dom.functionCodeList.appendChild(option);
+    }
 }

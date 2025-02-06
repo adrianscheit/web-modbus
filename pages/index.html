@@ -60,12 +60,12 @@
         Source code is avaliable here: https://github.com/adrianscheit/web-modbus
     </p>
     <h2 class="error"></h2>
-    <form>
+    <form name="serial">
         <fieldset>
             <legend>Serial connection</legend>
             <label>
                 Modbus mode
-                <select name="modbusmode" required>
+                <select name="mode" required>
                     <option>RTU</option>
                     <option>ASCII</option>
                     <option disabled>TCP</option>
@@ -73,8 +73,7 @@
             </label>
             <label>
                 baudRate
-                <input type="number" name="baudRate" list="baudRate" min="300" max="10000000" step="1" value="9600"
-                    required />
+                <input type="number" name="baudRate" list="baudRate" min="300" max="10000000" step="1" required />
                 <datalist id="baudRate">
                     <option>300</option>
                     <option>600</option>

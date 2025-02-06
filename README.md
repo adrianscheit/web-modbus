@@ -1,6 +1,8 @@
 # WEB Modbus
 https://adrianscheit.github.io/web-modbus/
+
 Currently it is is only a "beta" version.
+
 Currently it is without a license, so legally the default policy is applicable (where all author rights are reserved). 
 
 ## Goals: 
