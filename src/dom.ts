@@ -1,5 +1,6 @@
 import { Converters } from "./converters";
 import { Frame } from "./frame";
+import { FunctionCodes } from "./function-codes";
 
 export class TableDataColumn {
     readonly td: HTMLElement = document.createElement('td');
@@ -118,10 +119,10 @@ export class Dom {
     static readonly sendForm = new DomForm<SendFormData>(document.querySelector('form[name=send]')!);
 
     private static readonly functionCodeList = document.getElementById('functionCodeList')!;
-    static addFunctionCodeListOption(code: string, description: string): void {
+    static addFunctionCodeListOption(code: number): void {
         const option = document.createElement('option');
-        option.value = code;
-        option.appendChild(document.createTextNode(`${Converters.byteToHex(+code)} ${description}`));
+        option.value = code.toString();
+        option.appendChild(document.createTextNode(FunctionCodes.getDescription(code)));
         Dom.functionCodeList.appendChild(option);
     }
 

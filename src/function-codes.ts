@@ -1,37 +1,56 @@
 import { Converters } from "./converters";
+import { DataField } from "./data-field";
 
-export const functionCodes: { [code: number]: string } = {
-    0x01: 'Read Coils',
-    0x02: 'Read Discrete Inputs',
-    0x03: 'Read Holding Registers',
-    0x04: 'Read Input Registers',
-    0x05: 'Write Single Coil',
-    0x06: 'Write Single Register',
-    0x07: 'Read Exceptions Status',
-    0x08: 'Diagnostic Test',
-    0x0f: 'Write Multiple Coils',
-    0x10: 'Write Multiple Registers',
-    0x11: 'Identify Device Server',
-};
+interface FunctionCodeDetails {
+    readonly code: number;
+    readonly description: string;
+    readonly masterRequestStrategy?: DataField;
+    readonly slaveResponseStrategy?: DataField;
+}
 
-export const errorCodes: { [code: number]: string } = {
-    0x81: 'Illegal Function',
-    0x82: 'Illegal Data Address',
-    0x83: 'Illegal Data Value',
-    0x84: 'Server Device Failure',
-    0x85: 'Acknowledge',
-    0x86: 'Server Device Busy',
-    0x87: 'Negative Acknowledge',
-    0x88: 'Memory Parity Error',
-    0x90: 'Gateway Path Unavailable',
-    0x91: 'Gateway Target Device Failed to Respond',
-};
+const allFunctionCodeDetails: ReadonlySet<FunctionCodeDetails> = new Set<FunctionCodeDetails>([
+    { code: 0x01, description: 'Read Coils' },
+    { code: 0x02, description: 'Read Discrete Inputs' },
+    { code: 0x03, description: 'Read Holding Registers' },
+    { code: 0x04, description: 'Read Input Registers' },
+    { code: 0x05, description: 'Write Single Coil' },
+    { code: 0x06, description: 'Write Single Register' },
+    { code: 0x07, description: 'Read Exceptions Status' },
+    { code: 0x08, description: 'Diagnostic Test' },
+    { code: 0x0f, description: 'Write Multiple Coils' },
+    { code: 0x10, description: 'Write Multiple Registers' },
+    { code: 0x11, description: 'Identify Device Server' },
+    { code: 0x81, description: 'Illegal Function' },
+    { code: 0x82, description: 'Illegal Data Address' },
+    { code: 0x83, description: 'Illegal Data Value' },
+    { code: 0x84, description: 'Server Device Failure' },
+    { code: 0x85, description: 'Acknowledge' },
+    { code: 0x86, description: 'Server Device Busy' },
+    { code: 0x87, description: 'Negative Acknowledge' },
+    { code: 0x88, description: 'Memory Parity Error' },
+    { code: 0x90, description: 'Gateway Path Unavailable' },
+    { code: 0x91, description: 'Gateway Target Device Failed to Respond' },
+]);
 
+export class FunctionCodes {
+    static descriptions: ReadonlyMap<number, string> = new Map<number, string>([...allFunctionCodeDetails].map((it) => [it.code, it.description]));
 
-export const getFunctionCodeDescription = (code: number): string => {
-    const description = functionCodes[code] ?? errorCodes[code];
-    if (description) {
-        return `0x${Converters.byteToHex(code)} ${description}`;
+    static getDescription(code: number | undefined): string {
+        if (code === undefined) {
+            return '';
+        }
+        const description = this.descriptions.get(code);
+        if (description) {
+            return this._getDescription(code, description);
+        }
+        return this._getDescription(code, '<UNKNOWN>');
     }
-    return `0x${Converters.byteToHex(code)} UNKNOWN`;
+
+    private static _getDescription(code: number, description: string): string {
+        return `${code} = 0x${Converters.byteToHex(code)} => ${description} ${this.isError(code) ? '(ERROR)' : ''}`;
+    }
+
+    static isError(code: number): boolean {
+        return !!(code & 0x80);
+    }
 }

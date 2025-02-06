@@ -1,7 +1,7 @@
 import { Converters } from "./converters";
 import { dataFieldStrategies } from "./data-field";
 import { Dom, TableColumnButton, TableDataColumn } from "./dom";
-import { getFunctionCodeDescription } from "./function-codes";
+import { FunctionCodes } from "./function-codes";
 
 export class Frame {
     readonly slaveAddress: number;
@@ -46,7 +46,7 @@ export class Frame {
         return [
             new TableDataColumn(Frame.getDateTime(), this.type),
             new TableDataColumn(`${this.slaveAddress}=0x${Converters.byteToHex(this.slaveAddress!)}`, this.type),
-            new TableDataColumn(`${this.functionCode}=${this.functionCode === undefined ? '' : getFunctionCodeDescription(this.functionCode)}`, this.type),
+            new TableDataColumn(FunctionCodes.getDescription(this.functionCode), this.type),
             new TableDataColumn(this.getDataLength().toString(), this.type),
             new TableDataColumn(this.getDataAsText(), this.isNoValidDataFormat() ? 'error' : this.type),
             this.type === 'error' ? new TableDataColumn('', this.type) : new TableColumnButton('To send form', () => Dom.sendForm.setFormData(this)),
@@ -57,7 +57,7 @@ export class Frame {
         if (this.type === 'error') {
             return `Invalid frame: 0x${this.hexData}`;
         } else if (this.isUnknownFrame()) {
-            return `Data field format is unknown, data field: 0x${this.hexData}`;
+            return `No strategies to format data field. Raw data field is: 0x${this.hexData}`;
         } else if (this.isNoValidDataFormat()) {
             return `This frame format does not fit to the known function code: fromMasterToSlaveError=${this.fromMasterToSlaveError}; fromSlaveToMasterError=${this.fromSlaveToMasterError}; for: 0x${this.hexData}`;
         } else {

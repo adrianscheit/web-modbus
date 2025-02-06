@@ -3,8 +3,8 @@
 import { AsciiModeStrategy, ModeStrategy, RtuModeStrategy } from "./mode";
 import { clearSniffingTable, Dom, downloadAllSniffedEntries, insertFrameRow } from "./dom";
 import { Frame } from "./frame";
-import { errorCodes, functionCodes } from "./function-codes";
 import { intTest } from "./int.spec";
+import { FunctionCodes } from "./function-codes";
 
 const serial: Serial = navigator.serial;
 if (!serial) {
@@ -68,7 +68,7 @@ const start = (serialOptions: SerialOptions, mode: ModeStrategy) => {
     }, console.warn);
 };
 
-[...Object.entries(functionCodes), ...Object.entries(errorCodes)].forEach(([code, description]) => Dom.addFunctionCodeListOption(code, description));
+[...FunctionCodes.descriptions.keys()].forEach((code: number) => Dom.addFunctionCodeListOption(code));
 
 Dom.sendForm.submit = (formData) => {
     formData.slaveAddress = +formData.slaveAddress;
