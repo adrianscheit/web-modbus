@@ -2,7 +2,7 @@ import { Frame } from "./frame";
 
 export const extractFormData = <T>(form: any): T => {
     return Object.fromEntries(
-        [...form].map((it: any): [string, string] => [it.name, it.value])
+        [...form].filter((it) => it.name).map((it: any): [string, string] => [it.name, it.value])
     ) as T;
 };
 export const setFormData = (form: any, data: any): void => {
