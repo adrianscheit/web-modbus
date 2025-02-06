@@ -38,12 +38,23 @@ document.querySelector('form')!.addEventListener('submit', (event) => {
     start(formData, formData.modbusmode === 'ASCII' ? new AsciiModeStrategy() : new RtuModeStrategy());
 });
 
-const start = (serialOptions: SerialOptions, dataReceiver: ModeStrategy) => {
+let send: ((bytest: number[]) => void) | undefined = undefined;
+
+const start = (serialOptions: SerialOptions, mode: ModeStrategy) => {
     clearError();
     serial.requestPort().then((serialPort: SerialPort) => {
         console.log('serialPort', serialPort);
         serialPort.open(serialOptions).then(async () => {
             setSerialFieldsetDisable(true);
+            const writer = serialPort.writable?.getWriter();
+            if (writer) {
+                send = async (bytes: number[]) => {
+                    const rawFrame = mode.send(bytes);
+                    await writer.write(rawFrame);
+                }
+            } else {
+                console.error('Port is not writable!');
+            }
 
             while (serialPort.readable) {
                 const reader: ReadableStreamDefaultReader<Uint8Array> = serialPort.readable.getReader();
@@ -53,7 +64,7 @@ const start = (serialOptions: SerialOptions, dataReceiver: ModeStrategy) => {
                         if (done) {
                             break;
                         }
-                        dataReceiver.receive(value);
+                        mode.receive(value);
                     }
                 } catch (error) {
                     reportError(error);
@@ -61,6 +72,8 @@ const start = (serialOptions: SerialOptions, dataReceiver: ModeStrategy) => {
                     reader.releaseLock();
                 }
             }
+            writer?.releaseLock();
+            send = undefined;
             await serialPort.close();
             setSerialFieldsetDisable(false);
         }, reportError);
@@ -88,8 +101,9 @@ document.querySelector('form[name=send]')!.addEventListener('submit', event => {
     }
     const frameBytes: number[] = [formData.slaveAddress, formData.functionCode, ...bytes];
     insertFrameRow(new Frame([...frameBytes], 'send'));
-    new AsciiModeStrategy().send(frameBytes);
-    new RtuModeStrategy().send(frameBytes);
+    if (send) {
+        send(frameBytes);
+    }
 });
 
 // intTest();

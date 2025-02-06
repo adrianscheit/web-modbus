@@ -74,7 +74,7 @@ export class RtuModeStrategy extends ModeStrategy {
         const firstCrcByte = rtuCrc.crc & 0xff;
         rtuCrc.updateCrc(firstCrcByte);
         const result = new Uint8Array([...bytes, firstCrcByte, rtuCrc.crc]);
-        this.receive(result);
+        //this.receive(result);
         return result;
     }
 }
@@ -130,7 +130,7 @@ export class AsciiModeStrategy extends ModeStrategy {
         const line = `:${Converters.bytesAsHex(bytes)}${Converters.byteToHex(-lrc & 0xff)}\r\n`;
         console.log(bytes, line);
         const result = Converters.textAsUInt8Array(line);
-        this.receive(result);
+        //this.receive(result);
         return result;
     }
 }
