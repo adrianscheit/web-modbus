@@ -105,7 +105,6 @@ export interface SendFormData {
 
 export class Dom {
     private static readonly errorText: Text = document.querySelector('h2.error')!.appendChild(document.createTextNode(''));
-
     static reportError(error?: any): void {
         console.error(error);
         const errorMessage = `Error: ${error}`;
@@ -117,8 +116,8 @@ export class Dom {
 
     static readonly serialForm = new DomForm<ConnectionFormData>(document.querySelector('form[name=serial]')!);
     static readonly sendForm = new DomForm<SendFormData>(document.querySelector('form[name=send]')!);
-    private static readonly functionCodeList = document.getElementById('functionCodeList')!;
 
+    private static readonly functionCodeList = document.getElementById('functionCodeList')!;
     static addFunctionCodeListOption(code: string, description: string): void {
         const option = document.createElement('option');
         option.value = code;
