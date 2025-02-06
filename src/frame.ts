@@ -48,9 +48,9 @@ export class Frame {
         } else if (this.isUnknownFunctionCode()) {
             return `No strategy to format data field. Raw data field is: 0x${this.hexData}`;
         } else if (this.isNoValidDataFormat()) {
-            return `This frame format does not fit to any known strategies: masterRequestError=${this.masterRequest?.error}; slaveResponseError=${this.slaveResponse?.error}; raw data: 0x${this.hexData}`;
+            return `This frame format does not fit to any known strategies: masterRequest=${this.masterRequest?.error}; slaveResponse=${this.slaveResponse?.error}; raw data: 0x${this.hexData}`;
         } else {
-            return `Valid frame: masterRequest=${JSON.stringify(this.masterRequest)}; slaveResponse=${JSON.stringify(this.slaveResponse)}`;
+            return `Valid frame: masterRequest=${JSON.stringify(this.masterRequest?.object)}; slaveResponse=${JSON.stringify(this.slaveResponse?.object)}`;
         }
     }
 
