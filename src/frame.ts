@@ -1,34 +1,33 @@
 import { Converters } from "./converters";
-import { dataFieldStrategies } from "./data-field";
 import { Dom, TableColumnButton, TableDataColumn } from "./dom";
 import { FunctionCodes } from "./function-codes";
 
 export class Frame {
     readonly slaveAddress: number;
     readonly functionCode?: number;
-    readonly fromMasterToSlave?: any;
-    readonly fromSlaveToMaster?: any;
-    readonly fromMasterToSlaveError?: string;
-    readonly fromSlaveToMasterError?: string;
+    readonly masterRequest?: any;
+    readonly slaveResponse?: any;
+    readonly masterRequestError?: string;
+    readonly slaveResponseError?: string;
     readonly hexData: string;
 
     constructor(readonly data: number[], readonly type: 'error' | 'send' | '') {
         this.slaveAddress = data.shift()!;
         this.functionCode = data.shift();
+        if (this.functionCode === undefined) {
+            type = 'error';
+        }
         this.hexData = Converters.bytesAsHex(data);
-        if (type !== 'error' || this.functionCode === undefined) {
-            const specificFormat = dataFieldStrategies[this.functionCode!];
-            if (specificFormat) {
-                try {
-                    this.fromMasterToSlave = new specificFormat.fromMasterToSlave(data);
-                } catch (e: any) {
-                    this.fromMasterToSlaveError = this.getError(e);
-                }
-                try {
-                    this.fromSlaveToMaster = new specificFormat.fromSlaveToMaster(data);
-                } catch (e: any) {
-                    this.fromSlaveToMasterError = this.getError(e);
-                }
+        if (type !== 'error') {
+            try {
+                this.masterRequest = FunctionCodes.newMasterRequest(this.functionCode!, data);
+            } catch (e: any) {
+                this.masterRequestError = this.getError(e);
+            }
+            try {
+                this.slaveResponse = FunctionCodes.newSlaveResponse(this.functionCode!, data);
+            } catch (e: any) {
+                this.slaveResponseError = this.getError(e);
             }
         }
     }
@@ -45,7 +44,7 @@ export class Frame {
     getRow(): TableDataColumn[] {
         return [
             new TableDataColumn(Frame.getDateTime(), this.type),
-            new TableDataColumn(`${this.slaveAddress}=0x${Converters.byteToHex(this.slaveAddress!)}`, this.type),
+            new TableDataColumn(`${this.slaveAddress} = 0x${Converters.byteToHex(this.slaveAddress!)}`, this.type),
             new TableDataColumn(FunctionCodes.getDescription(this.functionCode), this.type),
             new TableDataColumn(this.getDataLength().toString(), this.type),
             new TableDataColumn(this.getDataAsText(), this.isNoValidDataFormat() ? 'error' : this.type),
@@ -59,18 +58,18 @@ export class Frame {
         } else if (this.isUnknownFrame()) {
             return `No strategies to format data field. Raw data field is: 0x${this.hexData}`;
         } else if (this.isNoValidDataFormat()) {
-            return `This frame format does not fit to the known function code: fromMasterToSlaveError=${this.fromMasterToSlaveError}; fromSlaveToMasterError=${this.fromSlaveToMasterError}; for: 0x${this.hexData}`;
+            return `This frame format does not fit to the known function code: masterRequestError=${this.masterRequestError}; slaveResponseError=${this.slaveResponseError}; raw data: 0x${this.hexData}`;
         } else {
-            return `Valid frame: fromMasterToSlave=${JSON.stringify(this.fromMasterToSlave)}; fromSlaveToMasterError=${JSON.stringify(this.fromSlaveToMaster)}`;
+            return `Valid frame: masterRequest=${JSON.stringify(this.masterRequest)}; slaveResponse=${JSON.stringify(this.slaveResponse)}`;
         }
     }
 
     private isNoValidDataFormat(): boolean {
-        return !!this.fromMasterToSlaveError && !!this.fromSlaveToMasterError;
+        return !!this.masterRequestError && !!this.slaveResponseError;
     }
 
     private isUnknownFrame(): boolean {
-        return !this.isNoValidDataFormat() && !this.fromMasterToSlave && !this.fromSlaveToMaster;
+        return !this.isNoValidDataFormat() && !this.masterRequest && !this.slaveResponse;
     }
 
     protected getError(e: any): string {

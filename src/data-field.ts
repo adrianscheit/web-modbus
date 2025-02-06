@@ -1,12 +1,12 @@
 import { getInputChecked } from "./dom";
 
-export interface DataField {
+export interface DataFieldStrategy {
     new(data: number[]): any;
 }
 
 const toUInt16 = (data: number[], offset: number): number => data[offset] << 8 ^ data[offset + 1];
 
-class AddressQuantity {
+export class AddressQuantity {
     readonly address: number;
     readonly quantity: number;
 
@@ -19,7 +19,7 @@ class AddressQuantity {
     }
 }
 
-class Booleans {
+export class Booleans {
     static readonly bitsInByte: number[] = [0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01];
     readonly booleans: boolean[];
 
@@ -31,7 +31,7 @@ class Booleans {
     }
 }
 
-class Registers {
+export class Registers {
     // readonly Uint8?: number[];
     // readonly Int8?: number[];
     // readonly Uint16?: number[];
@@ -69,7 +69,7 @@ class Registers {
     }
 }
 
-class AddressBoolean {
+export class AddressBoolean {
     readonly address: number;
     readonly boolean: boolean;
 
@@ -88,7 +88,7 @@ class AddressBoolean {
     }
 }
 
-class AddressRegister {
+export class AddressRegister {
     readonly address: number;
     readonly register: number;
 
@@ -101,7 +101,7 @@ class AddressRegister {
     }
 }
 
-class AddressQuantityBooleans extends AddressQuantity {
+export class AddressQuantityBooleans extends AddressQuantity {
     readonly booleans: Booleans;
 
     constructor(data: number[]) {
@@ -113,7 +113,7 @@ class AddressQuantityBooleans extends AddressQuantity {
     }
 }
 
-class AddressQuantityRegisters extends AddressQuantity {
+export class AddressQuantityRegisters extends AddressQuantity {
     readonly registers: Registers;
 
     constructor(data: number[]) {
@@ -124,19 +124,3 @@ class AddressQuantityRegisters extends AddressQuantity {
         this.registers = new Registers(data.slice(4));
     }
 }
-
-interface DataFieldFormats {
-    fromMasterToSlave: DataField;
-    fromSlaveToMaster: DataField;
-}
-
-export const dataFieldStrategies: { [code: number]: DataFieldFormats } = {
-    0x01: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Booleans },
-    0x02: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Booleans },
-    0x03: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Registers },
-    0x04: { fromMasterToSlave: AddressQuantity, fromSlaveToMaster: Registers },
-    0x05: { fromMasterToSlave: AddressBoolean, fromSlaveToMaster: AddressBoolean },
-    0x06: { fromMasterToSlave: AddressRegister, fromSlaveToMaster: AddressRegister },
-    0x0f: { fromMasterToSlave: AddressQuantityBooleans, fromSlaveToMaster: AddressQuantity },
-    0x10: { fromMasterToSlave: AddressQuantityRegisters, fromSlaveToMaster: AddressQuantity },
-};

@@ -1,24 +1,24 @@
 import { Converters } from "./converters";
-import { DataField } from "./data-field";
+import { AddressBoolean, AddressQuantity, AddressQuantityBooleans, AddressQuantityRegisters, AddressRegister, Booleans, DataFieldStrategy, Registers } from "./data-field";
 
 interface FunctionCodeDetails {
     readonly code: number;
     readonly description: string;
-    readonly masterRequestStrategy?: DataField;
-    readonly slaveResponseStrategy?: DataField;
+    readonly masterRequestStrategy?: DataFieldStrategy;
+    readonly slaveResponseStrategy?: DataFieldStrategy;
 }
 
 const allFunctionCodeDetails: ReadonlySet<FunctionCodeDetails> = new Set<FunctionCodeDetails>([
-    { code: 0x01, description: 'Read Coils' },
-    { code: 0x02, description: 'Read Discrete Inputs' },
-    { code: 0x03, description: 'Read Holding Registers' },
-    { code: 0x04, description: 'Read Input Registers' },
-    { code: 0x05, description: 'Write Single Coil' },
-    { code: 0x06, description: 'Write Single Register' },
+    { code: 0x01, description: 'Read Coils', masterRequestStrategy: AddressQuantity, slaveResponseStrategy: Booleans },
+    { code: 0x02, description: 'Read Discrete Inputs', masterRequestStrategy: AddressQuantity, slaveResponseStrategy: Booleans },
+    { code: 0x03, description: 'Read Holding Registers', masterRequestStrategy: AddressQuantity, slaveResponseStrategy: Registers },
+    { code: 0x04, description: 'Read Input Registers', masterRequestStrategy: AddressQuantity, slaveResponseStrategy: Registers },
+    { code: 0x05, description: 'Write Single Coil', masterRequestStrategy: AddressBoolean, slaveResponseStrategy: AddressBoolean },
+    { code: 0x06, description: 'Write Single Register', masterRequestStrategy: AddressRegister, slaveResponseStrategy: AddressRegister },
     { code: 0x07, description: 'Read Exceptions Status' },
     { code: 0x08, description: 'Diagnostic Test' },
-    { code: 0x0f, description: 'Write Multiple Coils' },
-    { code: 0x10, description: 'Write Multiple Registers' },
+    { code: 0x0f, description: 'Write Multiple Coils', masterRequestStrategy: AddressQuantityBooleans, slaveResponseStrategy: AddressQuantity },
+    { code: 0x10, description: 'Write Multiple Registers', masterRequestStrategy: AddressQuantityRegisters, slaveResponseStrategy: AddressQuantity },
     { code: 0x11, description: 'Identify Device Server' },
     { code: 0x81, description: 'Illegal Function' },
     { code: 0x82, description: 'Illegal Data Address' },
@@ -33,7 +33,17 @@ const allFunctionCodeDetails: ReadonlySet<FunctionCodeDetails> = new Set<Functio
 ]);
 
 export class FunctionCodes {
-    static descriptions: ReadonlyMap<number, string> = new Map<number, string>([...allFunctionCodeDetails].map((it) => [it.code, it.description]));
+    static descriptions: ReadonlyMap<number, string> = new Map<number, string>([...allFunctionCodeDetails]
+        .map((it) => [it.code, it.description])
+    );
+    static masterRequestStrategies: ReadonlyMap<number, DataFieldStrategy> = new Map<number, DataFieldStrategy>([...allFunctionCodeDetails]
+        .filter((it) => it.masterRequestStrategy)
+        .map((it) => [it.code, it.masterRequestStrategy!])
+    );
+    static slaveResponseStrategies: ReadonlyMap<number, DataFieldStrategy> = new Map<number, DataFieldStrategy>([...allFunctionCodeDetails]
+        .filter((it) => it.slaveResponseStrategy)
+        .map((it) => [it.code, it.slaveResponseStrategy!])
+    );
 
     static getDescription(code: number | undefined): string {
         if (code === undefined) {
@@ -52,5 +62,22 @@ export class FunctionCodes {
 
     static isError(code: number): boolean {
         return !!(code & 0x80);
+    }
+
+    static newMasterRequest(code: number, dataFieldBytes: number[]): Object | undefined {
+        const strategy = this.masterRequestStrategies.get(code);
+        return this._newDataFieldStrategy(strategy, dataFieldBytes);
+    }
+
+    static newSlaveResponse(code: number, dataFieldBytes: number[]): Object | undefined {
+        const strategy = this.slaveResponseStrategies.get(code);
+        return this._newDataFieldStrategy(strategy, dataFieldBytes);
+    }
+
+    private static _newDataFieldStrategy(strategy: DataFieldStrategy | undefined, dataFieldBytes: number[]): Object | undefined {
+        if (strategy) {
+            return new strategy(dataFieldBytes);
+        }
+        return undefined;
     }
 }
