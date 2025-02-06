@@ -12,12 +12,8 @@ if (!serial) {
     Dom.serialForm.setFieldsetDisabled(true);
 }
 
-Dom.clearSnifferButton.addEventListener('click', () => {
-    clearSniffingTable();
-});
-Dom.downloadSnifferButton.addEventListener('click', () => {
-    downloadAllSniffedEntries();
-});
+Dom.clearSnifferButton.addEventListener('click', () => clearSniffingTable());
+Dom.downloadSnifferButton.addEventListener('click', () => downloadAllSniffedEntries());
 
 Dom.serialForm.submit = (formData) => {
     formData.baudRate = +formData.baudRate;
@@ -81,9 +77,7 @@ Dom.sendForm.submit = (formData) => {
     }
     const frameBytes: number[] = [formData.slaveAddress, formData.functionCode, ...bytes];
     insertFrameRow(new Frame([...frameBytes], 'send'));
-    if (send) {
-        send(frameBytes);
-    }
+    send?.(frameBytes);
 };
 
 // intTest();

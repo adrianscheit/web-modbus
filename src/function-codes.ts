@@ -55,7 +55,7 @@ export class FunctionCodes {
         if (description) {
             return this._getDescription(code, description);
         }
-        return this._getDescription(code, '<UNKNOWN>');
+        return this._getDescription(code, '(UNKNOWN)');
     }
 
     private static _getDescription(code: number, description: string): string {
