@@ -1,6 +1,6 @@
 import { Converters } from "./converters";
 import { dataFieldStrategies } from "./data-field";
-import { TableDataColumn } from "./dom";
+import { setFormData, TableColumnButton, TableDataColumn } from "./dom";
 import { getFunctionCodeDescription } from "./function-codes";
 
 export class Frame {
@@ -10,10 +10,12 @@ export class Frame {
     readonly fromSlaveToMaster?: any;
     readonly fromMasterToSlaveError?: string;
     readonly fromSlaveToMasterError?: string;
+    readonly hexData: string;
 
     constructor(readonly data: number[], readonly type: 'error' | 'send' | '') {
         this.slaveAddress = data.shift()!;
         this.functionCode = data.shift();
+        this.hexData = Converters.bytesAsHex(data);
         if (type !== 'error' || this.functionCode === undefined) {
             const specificFormat = dataFieldStrategies[this.functionCode!];
             if (specificFormat) {
@@ -40,10 +42,6 @@ export class Frame {
         return this.data.length;
     }
 
-    getDataAsHex(): string {
-        return Converters.bytesAsHex(this.data);
-    }
-
     getRow(): TableDataColumn[] {
         return [
             new TableDataColumn(Frame.getDateTime(), this.type),
@@ -51,16 +49,21 @@ export class Frame {
             new TableDataColumn(`${this.functionCode}=${this.functionCode === undefined ? '' : getFunctionCodeDescription(this.functionCode)}`, this.type),
             new TableDataColumn(this.getDataLength().toString(), this.type),
             new TableDataColumn(this.getDataAsText(), this.isNoValidDataFormat() ? 'error' : this.type),
+            this.type === 'error' ? new TableDataColumn('', this.type) : new TableColumnButton('To send form', () => this.toSendForm()),
         ];
+    }
+
+    private toSendForm(): void {
+        setFormData(document.querySelector('form[name=send]'), this);
     }
 
     private getDataAsText(): string {
         if (this.type === 'error') {
-            return `Invalid frame: 0x${this.getDataAsHex()}`;
+            return `Invalid frame: 0x${this.hexData}`;
         } else if (this.isUnknownFrame()) {
-            return `Function code is invalid: 0x${this.getDataAsHex()}`;
+            return `Function code is invalid: 0x${this.hexData}`;
         } else if (this.isNoValidDataFormat()) {
-            return `This frame format does not fit to the function code: fromMasterToSlaveError=${this.fromMasterToSlaveError}; fromSlaveToMasterError=${this.fromSlaveToMasterError}; for: 0x${this.getDataAsHex()}`;
+            return `This frame format does not fit to the function code: fromMasterToSlaveError=${this.fromMasterToSlaveError}; fromSlaveToMasterError=${this.fromSlaveToMasterError}; for: 0x${this.hexData}`;
         } else {
             return `Valid frame: fromMasterToSlave=${JSON.stringify(this.fromMasterToSlave)}; fromSlaveToMasterError=${JSON.stringify(this.fromSlaveToMaster)}`;
         }

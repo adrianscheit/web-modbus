@@ -1,5 +1,19 @@
 import { Frame } from "./frame";
 
+export const extractFormData = <T>(form: any): T => {
+    return Object.fromEntries(
+        [...form].map((it: any): [string, string] => [it.name, it.value])
+    ) as T;
+};
+export const setFormData = (form: any, data: any): void => {
+    [...form].forEach((field) => {
+        const value = data[field.name];
+        if (value != undefined) {
+            field.value = value;
+        }
+    });
+};
+
 const domError: Text = document.querySelector('h2.error')!.appendChild(document.createTextNode(''));
 export const reportError = (error?: any): void => {
     console.error(error);
@@ -29,6 +43,17 @@ export class TableDataColumn {
             this.td.classList.add(className);
         }
         this.csv = `"${`${text}`.replaceAll(/[\n\r,"]/gm, "")}"`;
+    }
+}
+
+export class TableColumnButton extends TableDataColumn {
+    constructor(label: string, click: () => void) {
+        super('');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.addEventListener('click', () => click());
+        button.appendChild(document.createTextNode(label));
+        this.td.appendChild(button);
     }
 }
 

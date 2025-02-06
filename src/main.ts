@@ -1,7 +1,7 @@
 /// <reference types="w3c-web-serial" />
 
 import { AsciiModeStrategy, ModeStrategy, RtuModeStrategy } from "./mode";
-import { clearError, clearSniffingTable, downloadAllSniffedEntries, insertFrameRow, reportError, setSerialFieldsetDisable } from "./dom";
+import { clearError, clearSniffingTable, downloadAllSniffedEntries, extractFormData, insertFrameRow, reportError, setSerialFieldsetDisable } from "./dom";
 import { Frame } from "./frame";
 import { errorCodes, functionCodes } from "./function-codes";
 import { intTest } from "./int.spec";
@@ -27,12 +27,6 @@ interface ConnectionForm {
     stopBits?: 1 | 2;
     dataBits?: 7 | 8;
 }
-
-const extractFormData = <T>(form: any): T => {
-    return Object.fromEntries(
-        [...form].map((it: any): [string, string] => [it.name, it.value])
-    ) as T;
-};
 
 document.querySelector('form')!.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -83,11 +77,11 @@ const addFunctionCodeListOption = (code: string, description: string): void => {
 [...Object.entries(functionCodes), ...Object.entries(errorCodes)].forEach(([code, description]) => addFunctionCodeListOption(code, description));
 document.querySelector('form[name=send]')!.addEventListener('submit', event => {
     event.preventDefault();
-    const formData: { slaveAddress: number, functionCode: number, data: string } = extractFormData(event.target);
+    const formData: { slaveAddress: number, functionCode: number, hexData: string } = extractFormData(event.target);
     formData.slaveAddress = +formData.slaveAddress;
     formData.functionCode = +formData.functionCode;
-    formData.data = formData.data.toString().replaceAll(/[\n\r\s]+/gm, '');
-    let data = (formData.data.length & 1 ? '0' : '') + formData.data;
+    formData.hexData = formData.hexData.toString().replaceAll(/[\n\r\s]+/gm, '');
+    let data = (formData.hexData.length & 1 ? '0' : '') + formData.hexData;
     const bytes: number[] = [];
     for (let i = 0; i < data.length; i += 2) {
         bytes.push(parseInt(data.substring(i, i + 2), 16));
