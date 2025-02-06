@@ -33,7 +33,7 @@ export class Frame {
 
     getRow(): TableDataColumn[] {
         return [
-            new TableDataColumn(`${Frame.getDateTime()} (${this.type})`, this.type),
+            new TableDataColumn(`${Frame.getDateTime()} ${this.type}`, this.type),
             new TableDataColumn(`${this.slaveAddress} = 0x${Converters.byteToHex(this.slaveAddress!)}`, this.type),
             new TableDataColumn(FunctionCodes.getDescription(this.functionCode), FunctionCodes.isError(this.functionCode || 0) ? 'error' : this.type),
             new TableDataColumn(this.getDataLength().toString(), this.type),
