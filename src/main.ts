@@ -5,6 +5,7 @@ import { clearError, clearSniffingTable, downloadAllSniffedEntries, insertFrameR
 import { Frame } from "./frame";
 import { errorCodes, functionCodes } from "./function-codes";
 import { intTest } from "./int.spec";
+import { Converters } from "./converters";
 
 const serial: Serial = navigator.serial;
 if (!serial) {
@@ -76,7 +77,7 @@ const functionCodeList = document.getElementById('functionCodeList')!;
 const addFunctionCodeListOption = (code: string, description: string): void => {
     const option = document.createElement('option');
     option.value = code;
-    option.appendChild(document.createTextNode(description));
+    option.appendChild(document.createTextNode(`${Converters.byteToHex(+code)} ${description}`));
     functionCodeList.appendChild(option);
 };
 [...Object.entries(functionCodes), ...Object.entries(errorCodes)].forEach(([code, description]) => addFunctionCodeListOption(code, description));
@@ -89,11 +90,10 @@ document.querySelector('form[name=send]')!.addEventListener('submit', event => {
     let data = (formData.data.length & 1 ? '0' : '') + formData.data;
     const bytes: number[] = [];
     for (let i = 0; i < data.length; i += 2) {
-        console.log(data.substring(i, 2));
         bytes.push(parseInt(data.substring(i, i + 2), 16));
     }
     const frameBytes: number[] = [formData.slaveAddress, formData.functionCode, ...bytes];
-    insertFrameRow(new Frame([...frameBytes]), 'send');
+    insertFrameRow(new Frame([...frameBytes], 'send'));
     new AsciiModeStrategy().send(frameBytes);
     new RtuModeStrategy().send(frameBytes);
 });

@@ -1,13 +1,9 @@
 import { Converters } from "./converters";
-import { getInputChecked, insertErrorRow, insertFrameRow } from "./dom";
+import { insertFrameRow } from "./dom";
 import { Frame } from "./frame";
 
-export const reportValidFrame = (frame: Frame): void => {
+export const reportFrame = (frame: Frame): void => {
     insertFrameRow(frame);
-};
-
-export const reportInvalidData = (bytes: number[]): void => {
-    insertErrorRow(Converters.bytesAsHex(bytes), bytes.length);
 };
 
 export abstract class ModeStrategy {
@@ -51,31 +47,24 @@ export class RtuModeStrategy extends ModeStrategy {
             for (let i = 0; i < this.history.length; ++i) {
                 if (this.history[i].updateCrc(byte)) {
                     const bytes = this.history.map((it) => it.byte);
-                    const validFrame = new Frame(bytes.slice(i, -2));
-                    if (getInputChecked('onlyValid')) {
-                        if (this.history.length < 4 || validFrame.isNoValidDataFormat()) {
-                            console.warn(`Found end of frame (i=${i}) but the data field seems invalid!`, validFrame);
-                            continue;
-                        }
-                    }
                     if (i) {
-                        reportInvalidData(bytes.slice(0, i));
+                        reportFrame(new Frame(bytes.slice(0, i), 'error'));
                     }
-                    reportValidFrame(validFrame);
+                    const validFrame = new Frame(bytes.slice(i, -2), '');
+                    reportFrame(validFrame);
                     this.history = [];
                     clearTimeout(this.timeoutHandler!);
                     break;
                 }
             }
-            if (this.history.length > 300) {
-                console.warn('Rejecteding because history bigger than 300', this.history.shift());
+            if (this.history.length > 2300) {
+                reportFrame(new Frame(this.history.splice(0, 200).map((it) => it.byte), 'error'))
             }
         });
     }
 
     private resetFrame(): void {
-        console.warn('timeout');
-        reportInvalidData(this.history.map((it) => it.byte));
+        reportFrame(new Frame(this.history.map((it) => it.byte), 'error'));
         this.history = [];
     }
 
@@ -108,9 +97,9 @@ export class AsciiModeStrategy extends ModeStrategy {
                 } else if (char === 0x0D && char2 === 0x0A) {
                     this.frameBytes.pop();
                     if (!isNaN(this.currentLrc) && (this.currentLrc & 0xff) === 0) {
-                        reportValidFrame(new Frame(this.frameBytes))
+                        reportFrame(new Frame(this.frameBytes, ''));
                     } else {
-                        reportInvalidData(this.frameBytes);
+                        reportFrame(new Frame(this.frameBytes, 'error'));
                     }
                     this.frameBytes = [];
                     this.currentLrc = 0x00;
@@ -125,7 +114,7 @@ export class AsciiModeStrategy extends ModeStrategy {
 
     private resetFrame(): void {
         if (this.frameBytes.length) {
-            reportInvalidData(this.frameBytes);
+            reportFrame(new Frame(this.frameBytes, 'error'));
             this.frameBytes = [];
             this.currentLrc = 0x00;
         }
