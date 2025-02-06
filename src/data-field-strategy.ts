@@ -127,25 +127,25 @@ export class AddressQuantityRegisters extends AddressQuantity {
 
 export class Exception {
     static exceptionDescriptions: ReadonlyMap<number, string> = new Map<number, string>([
-        [0x81, 'Illegal Function'],
-        [0x82, 'Illegal Data Address'],
-        [0x83, 'Illegal Data Value'],
-        [0x84, 'Server Device Failure'],
-        [0x85, 'Acknowledge'],
-        [0x86, 'Server Device Busy'],
-        [0x87, 'Negative Acknowledge'],
-        [0x88, 'Memory Parity Error'],
-        [0x90, 'Gateway Path Unavailable'],
-        [0x91, 'Gateway Target Device Failed to Respond'],
+        [0x01, 'Illegal Function'],
+        [0x02, 'Illegal Data Address'],
+        [0x03, 'Illegal Data Value'],
+        [0x04, 'Server Device Failure'],
+        [0x05, 'Acknowledge'],
+        [0x06, 'Server Device Busy'],
+        [0x07, 'Negative Acknowledge'],
+        [0x08, 'Memory Parity Error'],
+        [0x10, 'Gateway Path Unavailable'],
+        [0x11, 'Gateway Target Device Failed to Respond'],
     ]);
-    code: number;
-    description: string | undefined;
+    exceptionCode: number;
+    exceptionDescription: string | undefined;
 
     constructor(data: number[]) {
         if (data.length !== 1) {
             throw new Error('Just on byte of exception code is allowed!');
         }
-        this.code = data[0];
-        this.description = Exception.exceptionDescriptions.get(this.code);
+        this.exceptionCode = data[0];
+        this.exceptionDescription = Exception.exceptionDescriptions.get(this.exceptionCode);
     }
 }
