@@ -1,3 +1,4 @@
+import { Converters } from "./converters";
 import { getInputChecked } from "./dom";
 
 export interface DataFieldStrategy {
@@ -146,6 +147,7 @@ export class Exception {
             throw new Error('Just on byte of exception code is allowed!');
         }
         this.exceptionCode = data[0];
-        this.exceptionDescription = Exception.exceptionDescriptions.get(this.exceptionCode);
+        this.exceptionDescription = Exception.exceptionDescriptions.get(this.exceptionCode) ??
+            `0x${Converters.byteToHex(this.exceptionCode)} => UNKNOWN EXCEPTION CODE`;
     }
 }

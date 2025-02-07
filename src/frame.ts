@@ -45,21 +45,31 @@ export class Frame {
     private getDataAsText(): string {
         if (this.type === 'error') {
             return `Invalid frame: 0x${this.hexData}`;
-        } else if (this.isUnknownFunctionCode()) {
+        } else if (this.isUnknownFunctionCodeStrategy()) {
             return `No strategy to format data field. Raw data field is: 0x${this.hexData}`;
         } else if (this.isNoValidDataFormat()) {
-            return `This frame format does not fit to any known strategies: masterRequest=${this.masterRequest?.error}; slaveResponse=${this.slaveResponse?.error}; raw data: 0x${this.hexData}`;
+            return `This frame format does not fit to any known strategies: 
+            ${Frame.conditionalText(!!this.masterRequest?.error, `masterRequestError=${this.masterRequest?.error}; `)}
+            ${Frame.conditionalText(!!this.slaveResponse?.error, `slaveResponseError=${this.slaveResponse?.error}; `)}
+            raw data: 0x${this.hexData}`;
         } else {
-            return `Valid frame: masterRequest=${JSON.stringify(this.masterRequest?.object)}; slaveResponse=${JSON.stringify(this.slaveResponse?.object)}`;
+            return `Valid frame: 
+            ${Frame.conditionalText(!!this.masterRequest?.object, `masterRequest=${JSON.stringify(this.masterRequest?.object)}; `)}
+            ${Frame.conditionalText(!!this.slaveResponse?.object, `slaveResponse=${JSON.stringify(this.slaveResponse?.object)}; `)}
+            `;
         }
     }
 
-    private isUnknownFunctionCode(): boolean {
+    private static conditionalText(condition: boolean, value: string): string {
+        return condition ? value : '';
+    }
+
+    private isUnknownFunctionCodeStrategy(): boolean {
         return !this.masterRequest && !this.slaveResponse;
     }
 
     private isNoValidDataFormat(): boolean {
-        return (!this.masterRequest || !!this.masterRequest?.error) && (!this.slaveResponse || !!this.slaveResponse?.error);
+        return !this.masterRequest?.object && !this.slaveResponse?.object;
     }
 
     protected getError(e: any): string {
