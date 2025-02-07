@@ -41,7 +41,7 @@ export class RtuModeStrategy extends ModeStrategy {
         if (this.timeoutHandler) {
             clearTimeout(this.timeoutHandler!);
         }
-        this.timeoutHandler = setTimeout(() => this.resetFrame(), 300);
+        this.timeoutHandler = setTimeout(() => this.resetFrame(), 200);
         data.forEach((byte) => {
             this.history.push(new RtuCurrentByte(byte));
             for (let i = 0; i < this.history.length; ++i) {

@@ -90,7 +90,7 @@ class DomForm<T> {
     }
 }
 
-export interface ConnectionFormData {
+interface ConnectionFormData {
     mode: 'ASCII' | 'RTU';
     baudRate: number;
     parity: ParityType;
@@ -98,7 +98,7 @@ export interface ConnectionFormData {
     dataBits?: 7 | 8;
 }
 
-export interface SendFormData {
+interface SendFormData {
     slaveAddress: number;
     functionCode: number;
     hexData: string;
