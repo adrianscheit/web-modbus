@@ -90,6 +90,17 @@ class DomForm<T> {
     }
 }
 
+class DomText {
+    private readonly text: Text;
+    constructor(element: Element) {
+        this.text = element.appendChild(document.createTextNode(''))
+    }
+
+    setText(text: string): void {
+        this.text.nodeValue = text;
+    }
+}
+
 interface ConnectionFormData {
     mode: 'ASCII' | 'RTU';
     baudRate: number;
@@ -105,14 +116,16 @@ interface SendFormData {
 }
 
 export class Dom {
-    private static readonly errorText: Text = document.querySelector('h2.error')!.appendChild(document.createTextNode(''));
+    private static readonly errorText = new DomText(document.querySelector('h2.error')!);
+    static readonly successText = new DomText(document.querySelector('h2.success')!);
+
     static reportError(error?: any): void {
         console.error(error);
         const errorMessage = `Error: ${error}`;
-        this.errorText.nodeValue = errorMessage;
+        this.errorText.setText(errorMessage);
     }
     static clearError(): void {
-        this.errorText.nodeValue = ``;
+        this.errorText.setText(``);
     }
 
     static readonly serialForm = new DomForm<ConnectionFormData>(document.querySelector('form[name=serial]')!);

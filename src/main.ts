@@ -30,12 +30,14 @@ const start = async (serialOptions: SerialOptions, mode: ModeStrategy) => {
     try {
         const serialPort: SerialPort = await serial.requestPort();
         await serialPort.open(serialOptions);
+        Dom.successText.setText(`Connected successfully`);
 
         send = async (bytes: number[]) => {
             const rawFrame = mode.send(bytes);
             const writer = serialPort.writable!.getWriter();
             await writer.write(rawFrame);
             writer.releaseLock();
+            Dom.successText.setText(`Sent successfully at ${Frame.getDateTime()}`);
         }
 
         while (serialPort.readable) {
@@ -54,12 +56,13 @@ const start = async (serialOptions: SerialOptions, mode: ModeStrategy) => {
                 reader.releaseLock();
             }
         }
-        send = undefined;
         await serialPort.close();
     } catch (e: any) {
         Dom.reportError(e.message || e.toString());
     } finally {
+        send = undefined;
         Dom.serialForm.setFieldsetDisabled(false);
+        Dom.successText.setText(``);
     }
 };
 
