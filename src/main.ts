@@ -24,44 +24,43 @@ Dom.serialForm.submit = (formData) => {
 
 let send: ((bytest: number[]) => Promise<void>) | undefined = undefined;
 
-const start = (serialOptions: SerialOptions, mode: ModeStrategy) => {
+const start = async (serialOptions: SerialOptions, mode: ModeStrategy) => {
     Dom.clearError();
-    serial.requestPort().then((serialPort: SerialPort) => {
-        console.log('serialPort', serialPort);
-        serialPort.open(serialOptions).then(async () => {
-            Dom.serialForm.setFieldsetDisabled(true);
-            const writer = serialPort.writable?.getWriter();
-            if (writer) {
-                send = async (bytes: number[]) => {
-                    const rawFrame = mode.send(bytes);
-                    await writer.write(rawFrame);
-                }
-            } else {
-                console.error('Port is not writable!');
-            }
+    Dom.serialForm.setFieldsetDisabled(true);
+    try {
+        const serialPort: SerialPort = await serial.requestPort();
+        await serialPort.open(serialOptions);
 
-            while (serialPort.readable) {
-                const reader: ReadableStreamDefaultReader<Uint8Array> = serialPort.readable.getReader();
-                try {
-                    while (true) {
-                        const { value, done } = await reader.read();
-                        if (done) {
-                            break;
-                        }
-                        mode.receive(value);
+        send = async (bytes: number[]) => {
+            const rawFrame = mode.send(bytes);
+            const writer = serialPort.writable!.getWriter();
+            await writer.write(rawFrame);
+            writer.releaseLock();
+        }
+
+        while (serialPort.readable) {
+            const reader: ReadableStreamDefaultReader<Uint8Array> = serialPort.readable.getReader();
+            try {
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) {
+                        break;
                     }
-                } catch (error) {
-                    reportError(error);
-                } finally {
-                    reader.releaseLock();
+                    mode.receive(value);
                 }
+            } catch (error) {
+                reportError(error);
+            } finally {
+                reader.releaseLock();
             }
-            writer?.releaseLock();
-            send = undefined;
-            await serialPort.close();
-            Dom.sendForm.setFieldsetDisabled(false);
-        }, reportError);
-    }, console.warn);
+        }
+        send = undefined;
+        await serialPort.close();
+    } catch (e: any) {
+        Dom.reportError(e.message || e.toString());
+    } finally {
+        Dom.serialForm.setFieldsetDisabled(false);
+    }
 };
 
 [...FunctionCodes.descriptions.keys()].forEach((code: number) => Dom.addFunctionCodeListOption(code));
