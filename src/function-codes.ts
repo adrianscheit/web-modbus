@@ -61,7 +61,7 @@ export class FunctionCodes {
     }
 
     static newSlaveResponse(code: number, dataFieldBytes: number[]): StrategyResult {
-        return this._newDataFieldStrategy(code & 0x80 ? Exception : this.slaveResponseStrategies.get(code), dataFieldBytes);
+        return this._newDataFieldStrategy(this.isError(code) ? Exception : this.slaveResponseStrategies.get(code), dataFieldBytes);
     }
 
     private static _newDataFieldStrategy(strategy: DataFieldStrategy | undefined, dataFieldBytes: number[]): StrategyResult {
