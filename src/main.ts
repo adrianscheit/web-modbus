@@ -8,7 +8,7 @@ import { FunctionCodes } from "./function-codes";
 
 const serial: Serial = navigator.serial;
 if (!serial) {
-    reportError('No serial support in this browser. Use current version of Edge, Chrome or Opera.');
+    Dom.reportError('No WEB Serial API support in this browser. Use current desktop version of Edge, Chrome or Opera.');
     Dom.serialForm.setFieldsetDisabled(true);
 }
 
