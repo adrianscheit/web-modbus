@@ -66,12 +66,11 @@
     <h2 class="error"></h2>
     <h2 class="success"></h2>
     <section>
-        <h3>Serial connection</h3>
         <form name="serial">
             <fieldset>
                 <legend>Serial connection</legend>
                 <label>
-                    Modbus mode
+                    Modbus mode:
                     <select name="mode" required>
                         <option>RTU</option>
                         <option>ASCII</option>
@@ -79,7 +78,7 @@
                     </select>
                 </label>
                 <label>
-                    baudRate
+                    baudRate:
                     <input type="number" name="baudRate" list="baudRate" min="300" max="10000000" step="1" required />
                     <datalist id="baudRate">
                         <option>300</option>
@@ -110,7 +109,7 @@
                     </datalist>
                 </label>
                 <label>
-                    parity
+                    parity:
                     <select name="parity" required>
                         <option>none</option>
                         <option>even</option>
@@ -122,11 +121,10 @@
         </form>
     </section>
     <section>
-        <h3>Send frame</h3>
-        <p>If there is already a master on the bus, this operation can cause a frame colision on the bus.</p>
         <form name="send">
             <fieldset>
                 <legend>Send any frame:</legend>
+                <p>If there is already a master on the bus, this operation can cause a frame colision on the bus.</p>
                 <label>
                     Slave address:
                     <input type="number" name="slaveAddress" min="0" max="255" step="1" required />
@@ -145,9 +143,8 @@
         </form>
     </section>
     <section>
-        <h3>Sniffer</h3>
         <fieldset>
-            <legend>options</legend>
+            <legend>Sniffer options</legend>
             <button type="button" id="downloadSnifferButton">Download all sniffed data</button>
             <button type="button" id="clearSnifferButton">Clear all sniffed data</button>
             <label><input type="checkbox" name="Uint8" />Uint8</label>
@@ -159,7 +156,6 @@
             <label><input type="checkbox" checked name="Float32" />Float32</label>
             <label><input type="checkbox" name="Float64" />Float64</label>
         </fieldset>
-        <p>First frams are for CRC/LRC/formats testing purpose only</p>
         <table>
             <thead>
                 <tr>
