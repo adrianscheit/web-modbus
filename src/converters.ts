@@ -1,4 +1,4 @@
-export class Converters {
+export class    Converters {
     private static textEncoder = new TextEncoder();
 
     static byteToHex(value: number): string {
