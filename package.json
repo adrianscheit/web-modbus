@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/main.ts",
   "scripts": {
+    "test": "jest",
     "start": "npm run build && http-server -c-1 -o / pages",
     "build": "webpack",
     "d": "git pull && npm outdated && npm update && npm run build && git status && git commit -am. && git push"
@@ -19,8 +20,11 @@
   },
   "homepage": "https://github.com/adrianscheit/web-modbus#readme",
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/w3c-web-serial": "1",
     "http-server": "14",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.6",
     "ts-loader": "9",
     "typescript": "5",
     "webpack-cli": "6"
