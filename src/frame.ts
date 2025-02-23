@@ -1,6 +1,6 @@
-import { Converters } from "./converters";
-import { Dom, TableColumnButton, TableDataColumn } from "./dom";
-import { FunctionCodes, StrategyResult } from "./function-codes";
+import {Converters} from "./converters";
+import {Dom, TableColumnButton, TableDataColumn} from "./dom";
+import {FunctionCodes, StrategyResult} from "./function-codes";
 
 export class Frame {
     readonly slaveAddress: number;
@@ -27,6 +27,10 @@ export class Frame {
         return `${now.toLocaleString()}+${now.getMilliseconds()}ms`;
     }
 
+    private static conditionalText(condition: boolean, value: string): string {
+        return condition ? value : '';
+    }
+
     getDataLength(): number {
         return this.data.length;
     }
@@ -40,6 +44,10 @@ export class Frame {
             new TableDataColumn(this.getDataAsText(), this.isNoValidDataFormat() ? 'error' : this.type),
             this.type === 'error' ? new TableDataColumn('', this.type) : new TableColumnButton('To send form', () => Dom.sendForm.setFormData(this)),
         ];
+    }
+
+    protected getError(e: any): string {
+        return e.message;
     }
 
     private getDataAsText(): string {
@@ -60,19 +68,11 @@ export class Frame {
         }
     }
 
-    private static conditionalText(condition: boolean, value: string): string {
-        return condition ? value : '';
-    }
-
     private isUnknownFunctionCodeStrategy(): boolean {
         return !this.masterRequest && !this.slaveResponse;
     }
 
     private isNoValidDataFormat(): boolean {
         return !this.masterRequest?.object && !this.slaveResponse?.object;
-    }
-
-    protected getError(e: any): string {
-        return e.message;
     }
 }

@@ -1,6 +1,6 @@
-import { Converters } from "./converters";
-import { insertFrameRow } from "./dom";
-import { Frame } from "./frame";
+import {Converters} from "./converters";
+import {insertFrameRow} from "./dom";
+import {Frame} from "./frame";
 
 export const reportFrame = (frame: Frame): void => {
     insertFrameRow(frame);
@@ -8,6 +8,7 @@ export const reportFrame = (frame: Frame): void => {
 
 export abstract class ModeStrategy {
     abstract receive(data: Uint8Array): void;
+
     abstract send(bytes: number[]): Uint8Array;
 }
 
@@ -63,11 +64,6 @@ export class RtuModeStrategy extends ModeStrategy {
         });
     }
 
-    private resetFrame(): void {
-        reportFrame(new Frame(this.history.map((it) => it.byte), 'error'));
-        this.history = [];
-    }
-
     send(bytes: number[]): Uint8Array {
         const rtuCrc = new RtuCrc();
         bytes.forEach((byte) => rtuCrc.updateCrc(byte));
@@ -76,6 +72,11 @@ export class RtuModeStrategy extends ModeStrategy {
         const result = new Uint8Array([...bytes, firstCrcByte, rtuCrc.crc]);
         //this.receive(result);
         return result;
+    }
+
+    private resetFrame(): void {
+        reportFrame(new Frame(this.history.map((it) => it.byte), 'error'));
+        this.history = [];
     }
 }
 
@@ -112,6 +113,16 @@ export class AsciiModeStrategy extends ModeStrategy {
         }
     }
 
+    send(bytes: number[]): Uint8Array {
+        let lrc = 0;
+        bytes.forEach((byte) => lrc += byte);
+        const line = `:${Converters.bytesAsHex(bytes)}${Converters.byteToHex(-lrc & 0xff)}\r\n`;
+        console.log(bytes, line);
+        const result = Converters.textAsUInt8Array(line);
+        //this.receive(result);
+        return result;
+    }
+
     private resetFrame(): void {
         if (this.frameBytes.length) {
             reportFrame(new Frame(this.frameBytes, 'error'));
@@ -122,15 +133,5 @@ export class AsciiModeStrategy extends ModeStrategy {
 
     private updateLrc(byte: number): void {
         this.currentLrc += byte;
-    }
-
-    send(bytes: number[]): Uint8Array {
-        let lrc = 0;
-        bytes.forEach((byte) => lrc += byte);
-        const line = `:${Converters.bytesAsHex(bytes)}${Converters.byteToHex(-lrc & 0xff)}\r\n`;
-        console.log(bytes, line);
-        const result = Converters.textAsUInt8Array(line);
-        //this.receive(result);
-        return result;
     }
 }

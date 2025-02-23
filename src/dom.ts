@@ -1,6 +1,5 @@
-import { Converters } from "./converters";
-import { Frame } from "./frame";
-import { FunctionCodes } from "./function-codes";
+import {Frame} from "./frame";
+import {FunctionCodes} from "./function-codes";
 
 export class TableDataColumn {
     readonly td: HTMLElement = document.createElement('td');
@@ -59,8 +58,8 @@ export const downloadAllSniffedEntries = (): void => {
 };
 
 class DomForm<T> {
-    private readonly fieldset: HTMLFieldSetElement;
     submit?: (data: T) => void;
+    private readonly fieldset: HTMLFieldSetElement;
 
     constructor(private readonly element: Element) {
         this.fieldset = element.querySelector('fieldset')!;
@@ -92,6 +91,7 @@ class DomForm<T> {
 
 class DomText {
     private readonly text: Text;
+
     constructor(element: Element) {
         this.text = element.appendChild(document.createTextNode(''))
     }
@@ -116,29 +116,28 @@ interface SendFormData {
 }
 
 export class Dom {
-    private static readonly errorText = new DomText(document.querySelector('h2.error')!);
     static readonly successText = new DomText(document.querySelector('h2.success')!);
+    static readonly serialForm = new DomForm<ConnectionFormData>(document.querySelector('form[name=serial]')!);
+    static readonly sendForm = new DomForm<SendFormData>(document.querySelector('form[name=send]')!);
+    static readonly downloadSnifferButton = document.getElementById('downloadSnifferButton')!;
+    static readonly clearSnifferButton = document.getElementById('clearSnifferButton')!;
+    private static readonly errorText = new DomText(document.querySelector('h2.error')!);
+    private static readonly functionCodeList = document.getElementById('functionCodeList')!;
 
     static reportError(error?: any): void {
         console.error(error);
         const errorMessage = `Error: ${error}`;
         this.errorText.setText(errorMessage);
     }
+
     static clearError(): void {
         this.errorText.setText(``);
     }
 
-    static readonly serialForm = new DomForm<ConnectionFormData>(document.querySelector('form[name=serial]')!);
-    static readonly sendForm = new DomForm<SendFormData>(document.querySelector('form[name=send]')!);
-
-    private static readonly functionCodeList = document.getElementById('functionCodeList')!;
     static addFunctionCodeListOption(code: number): void {
         const option = document.createElement('option');
         option.value = code.toString();
         option.appendChild(document.createTextNode(FunctionCodes.getDescription(code)));
         Dom.functionCodeList.appendChild(option);
     }
-
-    static readonly downloadSnifferButton = document.getElementById('downloadSnifferButton')!;
-    static readonly clearSnifferButton = document.getElementById('clearSnifferButton')!;
 }

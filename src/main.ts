@@ -1,10 +1,9 @@
 /// <reference types="w3c-web-serial" />
 
-import { AsciiModeStrategy, ModeStrategy, RtuModeStrategy } from "./mode";
-import { clearSniffingTable, Dom, downloadAllSniffedEntries, insertFrameRow } from "./dom";
-import { Frame } from "./frame";
-import { intTest } from "./int.spec";
-import { FunctionCodes } from "./function-codes";
+import {AsciiModeStrategy, ModeStrategy, RtuModeStrategy} from "./mode";
+import {clearSniffingTable, Dom, downloadAllSniffedEntries, insertFrameRow} from "./dom";
+import {Frame} from "./frame";
+import {FunctionCodes} from "./function-codes";
 
 const serial: Serial = navigator.serial;
 if (!serial) {
@@ -44,7 +43,7 @@ const start = async (serialOptions: SerialOptions, mode: ModeStrategy) => {
             const reader: ReadableStreamDefaultReader<Uint8Array> = serialPort.readable.getReader();
             try {
                 while (true) {
-                    const { value, done } = await reader.read();
+                    const {value, done} = await reader.read();
                     if (done) {
                         break;
                     }

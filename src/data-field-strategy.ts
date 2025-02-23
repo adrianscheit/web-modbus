@@ -1,5 +1,5 @@
-import { Converters } from "./converters";
-import { getInputChecked } from "./dom";
+import {Converters} from "./converters";
+import {getInputChecked} from "./dom";
 
 export interface DataFieldStrategy {
     new(data: number[]): any;
