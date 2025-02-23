@@ -1,7 +1,7 @@
 export enum ReportType {
     valid = '',
     errored = 'error',
-    sent = 'send',
+    //sent = 'send',
 }
 
 export interface ModeStrategy {
