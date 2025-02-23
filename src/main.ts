@@ -1,9 +1,11 @@
 /// <reference types="w3c-web-serial" />
 
-import {AsciiModeStrategy, ModeStrategy, RtuModeStrategy} from "./mode";
+import {ModeStrategy} from "./mode/mode-startegy";
 import {clearSniffingTable, Dom, downloadAllSniffedEntries, insertFrameRow} from "./dom";
 import {Frame} from "./frame";
 import {FunctionCodes} from "./function-codes";
+import {RtuModeStrategy} from "./mode/rtu-mode-strategy";
+import {AsciiModeStrategy} from "./mode/ascii-mode-strategy";
 
 const serial: Serial = navigator.serial;
 if (!serial) {

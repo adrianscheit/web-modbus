@@ -1,5 +1,6 @@
 import {Converters} from "./converters";
-import {AsciiModeStrategy, RtuModeStrategy} from "./mode";
+import {RtuModeStrategy} from "./mode/rtu-mode-strategy";
+import {AsciiModeStrategy} from "./mode/ascii-mode-strategy";
 
 export const intTest = (): void => {
     new RtuModeStrategy().receive(new Uint8Array([
