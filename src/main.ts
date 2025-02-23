@@ -1,6 +1,6 @@
 /// <reference types="w3c-web-serial" />
 
-import {ModeStrategy} from "./mode/mode-startegy";
+import {ModeStrategy, ReportType} from "./mode/mode-startegy";
 import {clearSniffingTable, Dom, downloadAllSniffedEntries, insertFrameRow} from "./dom";
 import {Frame} from "./frame";
 import {FunctionCodes} from "./function-codes";
@@ -16,11 +16,15 @@ if (!serial) {
 Dom.clearSnifferButton.addEventListener('click', () => clearSniffingTable());
 Dom.downloadSnifferButton.addEventListener('click', () => downloadAllSniffedEntries());
 
+const getModeReport = (bytes: number[], type: ReportType): void =>
+    insertFrameRow(new Frame(bytes, type));
+
+
 Dom.serialForm.submit = (formData) => {
     formData.baudRate = +formData.baudRate;
     formData.stopBits = formData.parity !== 'none' ? 1 : 2;
     formData.dataBits = formData.mode === 'ASCII' ? 7 : 8;
-    start(formData, formData.mode === 'ASCII' ? new AsciiModeStrategy() : new RtuModeStrategy(formData.baudRate));
+    start(formData, formData.mode === 'ASCII' ? new AsciiModeStrategy(getModeReport) : new RtuModeStrategy(getModeReport, formData.baudRate));
 };
 
 let send: ((bytest: number[]) => Promise<void>) | undefined = undefined;

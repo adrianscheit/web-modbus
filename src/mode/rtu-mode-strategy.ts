@@ -1,5 +1,4 @@
-import {Frame} from "../frame";
-import {ModeStrategy, reportFrame} from "./mode-startegy";
+import {ModeStrategy, ReportType} from "./mode-startegy";
 
 class RtuCrc {
     crc: number = 0xFFFF;
@@ -28,7 +27,7 @@ export class RtuModeStrategy implements ModeStrategy {
     protected timeoutHandler?: any;
     protected timeoutMs: number;
 
-    constructor(baudRate: number) {
+    constructor(readonly report: (bytes: number[], type: ReportType) => void, baudRate: number) {
         this.timeoutMs = 1 + Math.ceil(50 * 1000 / baudRate);
     }
 
@@ -43,17 +42,16 @@ export class RtuModeStrategy implements ModeStrategy {
                 if (this.history[i].updateCrc(byte)) {
                     const bytes = this.history.map((it) => it.byte);
                     if (i) {
-                        reportFrame(new Frame(bytes.slice(0, i), 'error'));
+                        this.report(bytes.slice(0, i), ReportType.errored);
                     }
-                    const validFrame = new Frame(bytes.slice(i, -2), '');
-                    reportFrame(validFrame);
+                    this.report(bytes.slice(i, -2), ReportType.valid);
                     this.history = [];
                     clearTimeout(this.timeoutHandler!);
                     break;
                 }
             }
             if (this.history.length > 2300) {
-                reportFrame(new Frame(this.history.splice(0, 200).map((it) => it.byte), 'error'))
+                this.report(this.history.splice(0, 200).map((it) => it.byte), ReportType.errored);
             }
         });
     }
@@ -63,13 +61,11 @@ export class RtuModeStrategy implements ModeStrategy {
         bytes.forEach((byte) => rtuCrc.updateCrc(byte));
         const firstCrcByte = rtuCrc.crc & 0xff;
         rtuCrc.updateCrc(firstCrcByte);
-        const result = new Uint8Array([...bytes, firstCrcByte, rtuCrc.crc]);
-        //this.receive(result);
-        return result;
+        return new Uint8Array([...bytes, firstCrcByte, rtuCrc.crc]);
     }
 
     private resetFrame(): void {
-        reportFrame(new Frame(this.history.map((it) => it.byte), 'error'));
+        this.report(this.history.map((it) => it.byte), ReportType.errored);
         this.history = [];
     }
 }

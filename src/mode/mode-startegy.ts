@@ -1,13 +1,14 @@
-import {insertFrameRow} from "../dom";
-import {Frame} from "../frame";
-
-export const reportFrame = (frame: Frame): void => {
-    insertFrameRow(frame);
-};
+export enum ReportType {
+    valid = '',
+    errored = 'error',
+    sent = 'send',
+}
 
 export interface ModeStrategy {
     receive(data: Uint8Array): void;
 
     send(bytes: number[]): Uint8Array;
+
+    report(bytes: number[], type: ReportType): void;
 }
 

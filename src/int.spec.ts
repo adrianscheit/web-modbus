@@ -3,7 +3,8 @@ import {RtuModeStrategy} from "./mode/rtu-mode-strategy";
 import {AsciiModeStrategy} from "./mode/ascii-mode-strategy";
 
 export const intTest = (): void => {
-    new RtuModeStrategy(300).receive(new Uint8Array([
+    new RtuModeStrategy(() => {
+    }, 300).receive(new Uint8Array([
         0x11, 0x22, 0x33, 0x44, 0x55, // some mess
         0x04, 0x01, 0x00, 0x0A, 0x00, 0x0D, 0xdd, 0x98, // valid: address & quantity
         0xFF, 0xFF, // valid CRC but invalid frame
@@ -13,7 +14,8 @@ export const intTest = (): void => {
         0x01, 0x10, 0x0F, 0xA3, 0x00, 0x02, 0x04, 0x00, 0x14, 0x07, 0xD0, 0xBB, 0x9A, // valid: expected uint16  20, 2000
     ]));
 
-    new AsciiModeStrategy().receive(Converters.textAsUInt8Array(
+    new AsciiModeStrategy(() => {
+    },).receive(Converters.textAsUInt8Array(
         '&*^&^%^%$*&&%%$#' + // simply totally invalid frame
         ':0401000A000DE4\r\n' + // valid: address & quantity
         'xyz!@=$%#$;' + // simply totally invalid frame

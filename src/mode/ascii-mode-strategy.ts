@@ -1,11 +1,13 @@
-import {Frame} from "../frame";
 import {Converters} from "../converters";
-import {ModeStrategy, reportFrame} from "./mode-startegy";
+import {ModeStrategy, ReportType} from "./mode-startegy";
 
 export class AsciiModeStrategy implements ModeStrategy {
     frameChars: number[] = [];
     frameBytes: number[] = [];
     currentLrc: number = 0x00;
+
+    constructor(readonly report: (bytes: number[], type: ReportType) => void) {
+    }
 
     receive(data: Uint8Array): void {
         data.forEach((it) => this.frameChars.push(it));
@@ -20,9 +22,9 @@ export class AsciiModeStrategy implements ModeStrategy {
                 } else if (char === 0x0D && char2 === 0x0A) {
                     this.frameBytes.pop();
                     if (!isNaN(this.currentLrc) && (this.currentLrc & 0xff) === 0) {
-                        reportFrame(new Frame(this.frameBytes, ''));
+                        this.report(this.frameBytes, ReportType.valid);
                     } else {
-                        reportFrame(new Frame(this.frameBytes, 'error'));
+                        this.report(this.frameBytes, ReportType.errored);
                     }
                     this.frameBytes = [];
                     this.currentLrc = 0x00;
@@ -39,15 +41,12 @@ export class AsciiModeStrategy implements ModeStrategy {
         let lrc = 0;
         bytes.forEach((byte) => lrc += byte);
         const line = `:${Converters.bytesAsHex(bytes)}${Converters.byteToHex(-lrc & 0xff)}\r\n`;
-        console.log(bytes, line);
-        const result = Converters.textAsUInt8Array(line);
-        //this.receive(result);
-        return result;
+        return Converters.textAsUInt8Array(line);
     }
 
     private resetFrame(): void {
         if (this.frameBytes.length) {
-            reportFrame(new Frame(this.frameBytes, 'error'));
+            this.report(this.frameBytes, ReportType.errored);
             this.frameBytes = [];
             this.currentLrc = 0x00;
         }

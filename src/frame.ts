@@ -46,10 +46,6 @@ export class Frame {
         ];
     }
 
-    protected getError(e: any): string {
-        return e.message;
-    }
-
     private getDataAsText(): string {
         if (this.type === 'error') {
             return `Invalid frame: 0x${this.hexData}`;
