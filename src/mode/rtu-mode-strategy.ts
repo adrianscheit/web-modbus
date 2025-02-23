@@ -23,15 +23,20 @@ class RtuCurrentByte extends RtuCrc {
     }
 }
 
-export class RtuModeStrategy extends ModeStrategy {
-    history: RtuCurrentByte[] = [];
-    timeoutHandler?: any;
+export class RtuModeStrategy implements ModeStrategy {
+    protected history: RtuCurrentByte[] = [];
+    protected timeoutHandler?: any;
+    protected timeoutMs: number;
+
+    constructor(baudRate: number) {
+        this.timeoutMs = 1 + Math.ceil(50 * 1000 / baudRate);
+    }
 
     receive(data: Uint8Array): void {
         if (this.timeoutHandler) {
             clearTimeout(this.timeoutHandler!);
         }
-        this.timeoutHandler = setTimeout(() => this.resetFrame(), 200);
+        this.timeoutHandler = setTimeout(() => this.resetFrame(), this.timeoutMs);
         data.forEach((byte) => {
             this.history.push(new RtuCurrentByte(byte));
             for (let i = 0; i < this.history.length; ++i) {

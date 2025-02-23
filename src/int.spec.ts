@@ -3,7 +3,7 @@ import {RtuModeStrategy} from "./mode/rtu-mode-strategy";
 import {AsciiModeStrategy} from "./mode/ascii-mode-strategy";
 
 export const intTest = (): void => {
-    new RtuModeStrategy().receive(new Uint8Array([
+    new RtuModeStrategy(300).receive(new Uint8Array([
         0x11, 0x22, 0x33, 0x44, 0x55, // some mess
         0x04, 0x01, 0x00, 0x0A, 0x00, 0x0D, 0xdd, 0x98, // valid: address & quantity
         0xFF, 0xFF, // valid CRC but invalid frame

@@ -20,7 +20,7 @@ Dom.serialForm.submit = (formData) => {
     formData.baudRate = +formData.baudRate;
     formData.stopBits = formData.parity !== 'none' ? 1 : 2;
     formData.dataBits = formData.mode === 'ASCII' ? 7 : 8;
-    start(formData, formData.mode === 'ASCII' ? new AsciiModeStrategy() : new RtuModeStrategy());
+    start(formData, formData.mode === 'ASCII' ? new AsciiModeStrategy() : new RtuModeStrategy(formData.baudRate));
 };
 
 let send: ((bytest: number[]) => Promise<void>) | undefined = undefined;

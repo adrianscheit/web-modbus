@@ -5,9 +5,9 @@ export const reportFrame = (frame: Frame): void => {
     insertFrameRow(frame);
 };
 
-export abstract class ModeStrategy {
-    abstract receive(data: Uint8Array): void;
+export interface ModeStrategy {
+    receive(data: Uint8Array): void;
 
-    abstract send(bytes: number[]): Uint8Array;
+    send(bytes: number[]): Uint8Array;
 }
 

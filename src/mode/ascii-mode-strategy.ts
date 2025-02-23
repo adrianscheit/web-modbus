@@ -2,7 +2,7 @@ import {Frame} from "../frame";
 import {Converters} from "../converters";
 import {ModeStrategy, reportFrame} from "./mode-startegy";
 
-export class AsciiModeStrategy extends ModeStrategy {
+export class AsciiModeStrategy implements ModeStrategy {
     frameChars: number[] = [];
     frameBytes: number[] = [];
     currentLrc: number = 0x00;
