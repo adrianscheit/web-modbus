@@ -16,7 +16,7 @@ Currently it is without a license, so legally the default policy is applicable (
     - or any other UART-type phisical network
 
 ## Notices:
-- if the Modbus network does not work at all, this software will propably not help, first you should use a real osciloscope, where many problems, like missing terminators (120Ohm) are directly visible on the display (at edges of each bit), and where baud-rates can be also calculated (from distance between bits)
+- if the Modbus network does not work at all, this software will propably not help, first you should use a real osciloscope, where many problems, like missing terminators (typically 120 Ohm) are directly visible on the display (at edges of each bit are not squer), and where baud-rates can be also calculated (from distance between bits)
 - obviously: all devices on a Modbus BUS, should be configured to the same Modbus mode, boud-rate and parity
 - Modbus BUS will be empty if master is disconnected or malfunctioning
 
@@ -36,7 +36,6 @@ Currently it is without a license, so legally the default policy is applicable (
     - Float64
 
 ### TODO
-- add license
 - sending any frames, also with unknown function-codes and forbidden slave addresses
 - assigning data types to a specific slave addresses and its registries addresses
 - move the tests to a dedicated test framework like `jest`
